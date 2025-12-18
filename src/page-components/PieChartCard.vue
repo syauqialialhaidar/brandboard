@@ -1,0 +1,71 @@
+<template>
+  <v-card class="pa-0 pb-4 rounded-lg overflow-hidden d-flex flex-column" color="surface" style="height: 100%;">
+    <div class="d-flex flex-wrap align-center pa-4">
+      <v-card-title class="text-subtitle-1 font-weight-bold pa-0">
+        {{ title }}
+      </v-card-title>
+    </div>
+
+    <v-divider />
+
+    <v-card-text class="pa-4 d-flex flex-column">
+      <template v-if="!isLoading && hasData">
+        <PieChart
+          :data="data"
+          :colors="colors"
+          :options="chartOptions"
+        />
+      </template>
+      <template v-else-if="isLoading">
+        <div class="d-flex justify-center align-center fill-height">
+          <v-progress-circular
+            indeterminate
+            color="primary"
+            size="64"
+          ></v-progress-circular>
+        </div>
+      </template>
+      <template v-else>
+        <div
+          class="d-flex justify-center align-center fill-height text-grey-darken-1"
+        >
+          No data available.
+        </div>
+      </template>
+    </v-card-text>
+  </v-card>
+</template>
+
+<script setup lang="ts">
+import { computed } from 'vue';
+import PieChart from '@/page-components/charts/PieChart.vue';
+import type { PropType } from 'vue';
+import type { ChartOptions } from 'chart.js';
+interface PieChartDataItem {
+  label: string;
+  value: number;
+}
+const props = defineProps({
+  title: {
+    type: String,
+    required: true,
+  },
+  data: {
+    type: Array as PropType<PieChartDataItem[]>,
+    required: true,
+  },
+  colors: {
+    type: Array as PropType<string[]>,
+    default: () => [],
+  },
+  chartOptions: {
+    type: Object as PropType<ChartOptions<'pie'>>,
+    default: () => ({}),
+  },
+  isLoading: {
+    type: Boolean,
+    default: false,
+  },
+});
+const hasData = computed(() => props.data && props.data.length > 0);
+</script>
