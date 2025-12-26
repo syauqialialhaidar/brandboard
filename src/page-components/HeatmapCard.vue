@@ -1,227 +1,282 @@
 <template>
-  <v-card class="heatmap-card pa-6 rounded-lg d-flex flex-column elevation-2">
-    
-    <div class="d-flex justify-space-between align-center mb-6">
-      <div>
-        <h3 class="text-h6 font-weight-bold text-high-emphasis mb-0">
-          {{ title }}
-        </h3>
-        <span class="text-caption text-medium-emphasis">Interactive Data Grid</span>
-      </div>
-      
-      <v-select
-        v-model="internalSelected"
-        :items="channels"
-        variant="outlined"
-        density="compact"
-        hide-details
-        rounded="lg"
-        class="custom-select"
-        style="max-width: 150px"
-      ></v-select>
+  <v-card class="pa-0 pb-4 rounded-lg overflow-hidden d-flex flex-column" color="surface" style="height: 100%;">
+
+    <div class="d-flex flex-wrap align-center pa-4 ga-4">
+      <v-card-title class="text-subtitle-1 font-weight-bold pa-0">{{ title }}</v-card-title>
+      <v-spacer></v-spacer>
+      <slot name="append-header"></slot>
     </div>
 
-    <div v-if="isLoading" class="d-flex justify-center align-center flex-grow-1" style="min-height: 300px;">
-      <v-progress-circular indeterminate color="primary" size="64"></v-progress-circular>
-    </div>
-    
-    <div v-else class="grid-wrapper">
-      <div class="heatmap-grid-blocks">
-        <div 
-          v-for="(item, index) in displayData" 
-          :key="index"
-          :class="['block-3d', getColorClass(item.value), getSpanClass(index)]"
-        >
-          <div class="block-face">
-            <div class="d-flex flex-column align-center justify-center h-100">
-              <span class="block-label text-truncate">{{ item.groupName }}</span>
-              <span class="block-value">{{ formatNumber(item.value) }}</span>
+    <v-divider class="mb-4"></v-divider>
+
+    <v-card-text class="pa-4 d-flex flex-column flex-grow-1">
+      <div v-if="isLoading" class="d-flex justify-center align-center fill-height">
+        <v-progress-circular indeterminate color="primary" size="40"></v-progress-circular>
+      </div>
+
+      <div v-else class="content-container flex-grow-1 d-flex flex-column justify-center">
+        <div class="grid-container" :class="{ 'has-selection': selectedIndex !== null }" :style="gridStyle">
+          <div v-for="(item, index) in radialData" :key="index" class="grid-slot">
+            <div v-if="item" class="mini-block" :class="{ 'is-active': selectedIndex === index }"
+              :style="getBlockTheme(item.value)" @click="handleInteraction(item, index)">
+              <div class="text-center px-1">
+                <div class="mini-label">{{ item.groupName }}</div>
+                <div class="mini-value">{{ formatNumber(item.value) }}</div>
+              </div>
             </div>
           </div>
+        </div>
 
-          <v-tooltip activator="parent" location="top" open-delay="200">
-            <span class="font-weight-bold">{{ item.groupName }}: {{ item.value }}</span>
-          </v-tooltip>
+        <div class="d-flex justify-center gap-6 mt-12">
+          <div class="stat-tag" @click="selectedIndex = null">
+            <span class="tag-label">Total</span>
+            <span class="tag-val">{{ totalCorporate }}</span>
+          </div>
+          <div class="stat-tag dark-blue">
+            <span class="tag-label">Mentions</span>
+            <span class="tag-val">{{ totalMentions.toLocaleString() }}</span>
+          </div>
         </div>
       </div>
-    </div>
-
-    <v-divider class="my-6"></v-divider>
-    <div class="d-flex justify-space-around align-center">
-      <div class="text-center">
-        <div class="text-caption text-uppercase text-medium-emphasis font-weight-bold">Total Corporate</div>
-        <div class="text-h6 font-weight-bold">{{ totalCorporate }}</div>
-      </div>
-      <v-divider vertical inset class="mx-2"></v-divider>
-      <div class="text-center">
-        <div class="text-caption text-uppercase text-medium-emphasis font-weight-bold">Total Mentions</div>
-        <div class="text-h6 font-weight-bold">{{ totalMentions.toLocaleString() }}</div>
-      </div>
-    </div>
+    </v-card-text>
   </v-card>
-
-  
 </template>
 
 <script setup lang="ts">
 import { computed, ref } from 'vue';
 
-interface HeatmapDetail {
-  groupName: string;
-  value: number;
-}
+interface HeatmapDetail { groupName: string; value: number; }
+interface GridPosition { r: number; c: number; dist: number; }
 
 const props = defineProps<{
-  title: string;
-  data: Array<{ label: string; details: HeatmapDetail[] }>;
+  title?: string; // Tambahan prop untuk judul
+  data: Array<{ details: any[] }>;
   isLoading: boolean;
 }>();
 
-const internalSelected = ref('All');
+const emit = defineEmits(['item-click']);
+const selectedIndex = ref<number | null>(null);
+const allData = computed(() => props.data.flatMap(d => d.details));
 
-// List of channels for the dropdown
-const channels = computed(() => ['All', ...props.data.map(d => d.label)]);
+const columns = 8;
+const blockSizing = 75;
+const gapSize = 14;
 
-// Data being displayed based on selection
-const displayData = computed(() => {
-  if (internalSelected.value === 'All') {
-    // Show all details from all labels
-    return props.data.flatMap(d => d.details);
+const gridStyle = computed(() => ({
+  display: 'grid',
+  gridTemplateColumns: `repeat(${columns}, ${blockSizing}px)`,
+  justifyContent: 'center',
+  gap: `${gapSize}px`,
+  perspective: '1200px'
+}));
+
+const radialData = computed(() => {
+  if (allData.value.length === 0) return [];
+  const sorted = [...allData.value].sort((a, b) => b.value - a.value);
+  const rows = Math.ceil(sorted.length / columns);
+  const grid = new Array<HeatmapDetail | null>(rows * columns).fill(null);
+  const centerX = (columns - 1) / 2;
+  const centerY = (rows - 1) / 2;
+
+  const positions: GridPosition[] = [];
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < columns; c++) {
+      const dist = Math.sqrt(Math.pow(r - centerY, 2) + Math.pow(c - centerX, 2));
+      positions.push({ r, c, dist });
+    }
   }
-  const found = props.data.find(d => d.label === internalSelected.value);
-  return found ? found.details : [];
+  positions.sort((a, b) => a.dist - b.dist);
+  sorted.forEach((item, index) => {
+    if (positions[index]) {
+      const { r, c } = positions[index];
+      grid[r * columns + c] = item;
+    }
+  });
+  return grid;
 });
 
-// Calculate Total Corporate (Count of items)
-const totalCorporate = computed(() => {
-  return displayData.value.length;
-});
+const getBlockTheme = (val: number) => {
+  const max = Math.max(...allData.value.map(i => i.value)) || 1;
+  const ratio = val / max;
+  const h = 210; // 165 (Hijau) diganti ke 210 (Biru)
+  const s = 30 + (ratio * 50);
+  const l = 95 - (ratio * 55);
 
-// Calculate Total Mentions (Sum of values)
-const totalMentions = computed(() => {
-  return displayData.value.reduce((acc, item) => acc + item.value, 0);
-});
-
-const formatNumber = (num: number) => {
-  if (num >= 1000) return (num/1000).toFixed(1) + 'k';
-  return num;
+  return {
+    '--bg': `hsl(${h}, ${s}%, ${l}%)`,
+    '--color': l < 60 ? 'white' : '#475569',
+    '--shd': l < 60 ? 'rgba(25, 118, 210, 0.2)' : '#d1d9e6'
+  };
 };
 
-// Grid logic for varied block sizes
-const getSpanClass = (index: number) => {
-  const variations = ['span-1-1', 'span-2-1', 'span-1-1', 'span-1-1', 'span-1-2', 'span-1-1'];
-  return variations[index % variations.length];
+
+const handleInteraction = (item: HeatmapDetail, index: number) => {
+  selectedIndex.value = selectedIndex.value === index ? null : index;
+  emit('item-click', item);
 };
 
-const getColorClass = (value: number) => {
-  if (value === 0) return 'style-empty';
-  if (value < 100) return 'style-low';
-  if (value < 500) return 'style-medium';
-  return 'style-high';
-};
+const formatNumber = (n: number) => n >= 1000 ? (n / 1000).toFixed(1) + 'k' : n;
+const totalCorporate = computed(() => allData.value.length);
+const totalMentions = computed(() => allData.value.reduce((a, b) => a + b.value, 0));
 </script>
 
 <style scoped>
-.heatmap-card {
-  transition: background-color 0.3s ease;
+.v-card {
+  /* Biarkan Vuetify mengatur background secara otomatis */
+  transition: all 0.3s ease;
 }
 
-.border-top { border-top: 1px solid rgba(128, 128, 128, 0.2); }
-
-/* GRID LAYOUT */
-.heatmap-grid-blocks {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(85px, 1fr));
-  grid-auto-rows: 75px;
-  grid-auto-flow: dense; 
-  gap: 12px; 
-  padding: 4px;
+.grid-container.has-selection .mini-block:not(.is-active) {
+  filter: blur(3px) grayscale(0.8) opacity(0.4);
+  transform: scale(0.9);
+  /* Opsional: sedikit mengecilkan yang tidak terpilih */
+  pointer-events: none;
+  /* Mencegah interaksi pada item yang ter-blur */
 }
 
-.span-1-1 { grid-column: span 1; grid-row: span 1; }
-.span-2-1 { grid-column: span 2; grid-row: span 1; }
-.span-1-2 { grid-column: span 1; grid-row: span 2; }
-
-/* 3D BLOCK STYLE */
-.block-3d {
-  position: relative;
+.mini-block {
+  width: 75px;
+  height: 75px;
+  background: var(--bg);
   border-radius: 12px;
-  cursor: pointer;
-  transition: transform 0.1s ease;
-  border-bottom: 5px solid rgba(0,0,0,0.2); 
-  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-}
-
-.block-face {
-  width: 100%;
-  height: 100%;
-  border-radius: 12px;
-  border: 1px solid rgba(255,255,255,0.2);
-  border-bottom: none;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.3), inset 0 -2px 0 rgba(0,0,0,0.05);
-  padding: 8px;
-  color: white;
-}
-
-/* COLORS */
-.style-empty {
-  background-color: #e5e7eb; 
-  border-bottom-color: #9ca3af;
-}
-.style-empty .block-face {
-  color: #6b7280;
-}
-
-:deep(.v-theme--dark) .style-empty {
-  background-color: #2b2b36;
-  border-bottom-color: #1a1a20;
-}
-
-.style-low {
-  background: linear-gradient(to bottom, #3b82f6, #2563eb);
-  border-bottom-color: #1d4ed8;
-}
-
-.style-medium {
-  background: linear-gradient(to bottom, #8b5cf6, #7c3aed);
-  border-bottom-color: #6d28d9;
-}
-
-.style-high {
-  background: linear-gradient(to bottom, #06b6d4, #0891b2);
-  border-bottom-color: #155e75;
-}
-
-/* HOVER & ACTIVE */
-.block-3d:hover {
-  transform: translateY(-2px);
-  filter: brightness(1.05);
-}
-
-.block-3d:active {
-  transform: translateY(4px);
-  border-bottom-width: 1px;
-  box-shadow: none;
-}
-
-.block-label {
-  font-size: 0.7rem;
-  opacity: 0.9;
-  width: 100%;
-  text-align: center;
-}
-
-.block-value {
-  font-size: 1.2rem;
-  font-weight: 800;
-  line-height: 1.2;
-}
-
-/* FOOTER STATS */
-.gap-6 { gap: 24px; }
-.gap-8 { gap: 32px; }
-.stats-item {
+  /* Sesuaikan dengan rounded-lg */
   display: flex;
-  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  /* Gunakan shadow yang lebih halus/standar */
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  border: 2px solid rgba(0, 0, 0, 0.05);
+  position: relative;
+  z-index: 1;
+}
+
+.mini-block:hover:not(.is-active) {
+  transform: scale(1.1);
+  z-index: 5;
+}
+
+.mini-block.is-active {
+  transform: scale(1.5) translateY(-10px);
+  z-index: 100;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12), 0 0 20px rgba(25, 118, 210, 0.4);
+  /* Ganti ke biru */
+  border: 2px solid #1976D2;
+  /* Ganti ke biru */
+}
+
+.mini-block.is-active .mini-label {
+  white-space: normal;
+  /* Mengizinkan teks turun ke bawah */
+  max-width: 100%;
+  /* Mengambil lebar penuh kotak yang sudah membesar */
+  overflow: visible;
+  /* Menampilkan teks yang tadinya terpotong */
+  text-overflow: clip;
+  /* Menghilangkan titik-titik (...) */
+  line-height: 1.1;
+  /* Mengatur jarak antar baris agar rapi */
+  margin-bottom: 2px;
+  /* Memberi sedikit ruang dengan angka di bawahnya */
+}
+
+.mini-label {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--color);
+  max-width: 68px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  opacity: 0.85;
+  transition: all 0.3s ease;
+}
+
+.mini-value {
+  font-size: 16px;
+  font-weight: 900;
+  color: var(--color);
+  line-height: 1;
+}
+
+.stat-tag {
+  /* Menggunakan warna surface variant agar adaptif (gelap di dark mode, terang di light mode) */
+  background: rgba(var(--v-theme-on-surface), 0.05);
+  color: rgba(var(--v-theme-on-surface), 0.87);
+  padding: 10px 24px;
+  border-radius: 100px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  /* Border halus agar terlihat di dark mode */
+  border: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
+}
+
+.stat-tag:hover {
+  background: rgba(var(--v-theme-on-surface), 0.1);
+}
+
+/* Tombol Mentions yang sekarang berwarna Biru */
+.stat-tag.dark-blue {
+  background: #1976D2;
+  /* Warna Biru Primer */
+  color: white;
+  border: none;
+  box-shadow: 0 6px 18px rgba(25, 118, 210, 0.3);
+}
+
+.stat-tag.dark-blue:hover {
+  background: #1565C0;
+  /* Biru sedikit lebih gelap saat hover */
+}
+
+.tag-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  font-weight: 700;
+  opacity: 0.8;
+}
+
+.tag-val {
+  font-size: 20px;
+  font-weight: 900;
+}
+
+/* Penyesuaian khusus blok aktif agar tidak pakai border hijau */
+.mini-block.is-active {
+  transform: scale(1.5) translateY(-10px);
+  z-index: 100;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2), 0 0 20px rgba(25, 118, 210, 0.5);
+  border: 2px solid #1976D2;
+  /* Border Biru */
+}
+
+
+.stat-tag.dark-teal {
+  background: #1976D2;
+  /* Ganti dari #0f766e */
+  color: white;
+  box-shadow: 0 6px 18px rgba(25, 118, 210, 0.3);
+  /* Sesuaikan shadow */
+}
+
+.tag-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  font-weight: 700;
+  opacity: 0.9;
+}
+
+.tag-val {
+  font-size: 20px;
+  font-weight: 900;
+}
+
+.d-flex.justify-center {
+  gap: 16px;
+  /* Mengatur jarak horizontal sebesar 16px */
 }
 </style>

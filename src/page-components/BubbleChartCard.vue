@@ -1,59 +1,64 @@
 <template>
-  <v-card class="pa-6 rounded-lg d-flex flex-column elevation-2 bubble-container-card" ref="container" flat>
-    <v-card-title class="text-h6 font-weight-bold d-flex justify-space-between align-center">
-      <div class="text-medium-emphasis">
-        <v-icon start color="purple-lighten-2">mdi-chart-bubble</v-icon>
-        {{ title }}
-      </div>
-    </v-card-title>
+  <v-card class="pa-0 pb-4 rounded-lg overflow-hidden d-flex flex-column" color="surface" style="height: 100%;">
     
-    <div 
-      class="bubble-area" 
-      ref="canvasArea"
-      @mousemove="handleMouseMove"
-      @mouseup="handleMouseUp"
-      @mouseleave="handleMouseUp"
-    >
-      <v-overlay v-if="isLoading" contained class="align-center justify-center">
-        <v-progress-circular indeterminate color="purple"></v-progress-circular>
-      </v-overlay>
+    <div class="d-flex flex-wrap align-center pa-4 ga-4">
+      <v-card-title class="text-subtitle-1 font-weight-bold pa-0">
+        {{ title }}
+      </v-card-title>
+      <v-spacer></v-spacer>
+      </div>
 
+    <v-divider class="mb-4"></v-divider>
+
+    <v-card-text class="pa-4 d-flex flex-column flex-grow-1">
       <div 
-        v-for="(bubble, index) in floatingBubbles" 
-        :key="index"
-        class="floating-balloon"
-        :class="{ 'is-dragging': draggedIndex === index }"
-        @mousedown="handleMouseDown($event, index)"
-        @touchstart="handleMouseDown($event, index)"
-        :style="{
-          width: bubble.size + 'px',
-          height: bubble.size + 'px',
-          background: `radial-gradient(circle at 30% 30%, ${bubble.color}CC, #121212)`,
-          boxShadow: `0 0 20px ${bubble.color}33, inset 0 0 15px rgba(255,255,255,0.1)`,
-          border: `1px solid ${bubble.color}66`,
-          transform: `translate3d(${bubble.x}px, ${bubble.y}px, 0)`,
-          zIndex: draggedIndex === index ? 100 : 10
-        }"
+        class="bubble-area" 
+        ref="canvasArea"
+        @mousemove="handleMouseMove"
+        @mouseup="handleMouseUp"
+        @mouseleave="handleMouseUp"
       >
-        <div class="bubble-content" :style="{ transform: `scale(${Math.max(bubble.size / 135, 0.75)})` }">
-          <div class="brand-name">{{ bubble.label }}</div>
-          <div class="mention-count">{{ bubble.totalMention.toLocaleString() }}</div>
+        <v-overlay v-if="isLoading" contained class="align-center justify-center">
+          <v-progress-circular indeterminate color="purple"></v-progress-circular>
+        </v-overlay>
+
+        <div 
+          v-for="(bubble, index) in floatingBubbles" 
+          :key="index"
+          class="floating-balloon"
+          :class="{ 'is-dragging': draggedIndex === index }"
+          @mousedown="handleMouseDown($event, index)"
+          @touchstart="handleMouseDown($event, index)"
+          :style="{
+            width: bubble.size + 'px',
+            height: bubble.size + 'px',
+            background: `radial-gradient(circle at 30% 30%, ${bubble.color}CC, #121212)`,
+            boxShadow: `0 0 20px ${bubble.color}33, inset 0 0 15px rgba(255,255,255,0.1)`,
+            border: `1px solid ${bubble.color}66`,
+            transform: `translate3d(${bubble.x}px, ${bubble.y}px, 0)`,
+            zIndex: draggedIndex === index ? 100 : 10
+          }"
+        >
+          <div class="bubble-content" :style="{ transform: `scale(${Math.max(bubble.size / 135, 0.75)})` }">
+            <div class="brand-name">{{ bubble.label }}</div>
+            <div class="mention-count">{{ bubble.totalMention.toLocaleString() }}</div>
+          </div>
         </div>
       </div>
-    </div>
 
-    <v-divider class="my-6"></v-divider>
-    <div class="d-flex justify-space-around align-center">
-      <div class="text-center">
-        <div class="text-caption text-uppercase text-medium-emphasis font-weight-bold">Total Brand</div>
-        <div class="text-h6 font-weight-bold">{{ totalBrands }}</div>
+      <v-divider class="my-4"></v-divider>
+      
+      <div class="d-flex justify-center gap-6 mt-4">
+        <div class="stat-tag">
+          <span class="tag-label">Total Brand</span>
+          <span class="tag-val">{{ totalBrands }}</span>
+        </div>
+        <div class="stat-tag dark-blue">
+          <span class="tag-label">Mentions</span>
+          <span class="tag-val">{{ totalMentions.toLocaleString() }}</span>
+        </div>
       </div>
-      <v-divider vertical inset class="mx-2"></v-divider>
-      <div class="text-center">
-        <div class="text-caption text-uppercase text-medium-emphasis font-weight-bold">Total Mentions</div>
-        <div class="text-h6 font-weight-bold">{{ totalMentions.toLocaleString() }}</div>
-      </div>
-    </div>
+    </v-card-text>
   </v-card>
 </template>
 
@@ -244,6 +249,43 @@ watch(() => props.data, initBubbles, { deep: true });
 </script>
 
 <style scoped>
+
+.d-flex.justify-center {
+  gap: 16px;
+}
+
+.stat-tag {
+  background: rgba(var(--v-theme-on-surface), 0.05);
+  color: rgba(var(--v-theme-on-surface), 0.87);
+  padding: 10px 24px;
+  border-radius: 100px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  transition: all 0.2s ease;
+  border: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
+}
+
+/* Gaya khusus Mentions (Warna Biru) */
+.stat-tag.dark-blue {
+  background: #1976D2; /* Biru Vuetify */
+  color: white;
+  border: none;
+  box-shadow: 0 6px 18px rgba(25, 118, 210, 0.3);
+}
+
+.tag-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  font-weight: 700;
+  opacity: 0.8;
+}
+
+.tag-val {
+  font-size: 20px;
+  font-weight: 900;
+}
+
 .bubble-area {
   width: 100%;
   height: 650px;

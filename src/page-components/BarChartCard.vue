@@ -1,146 +1,113 @@
 <template>
   <v-card class="pa-0 pb-4 rounded-lg overflow-hidden d-flex flex-column" color="surface" style="height: 100%;">
     <div class="d-flex flex-wrap align-center pa-4 ga-4">
-      <v-card-title class="text-subtitle-1 font-weight-bold pa-0">
-        {{ title }}
-      </v-card-title>
+      <v-card-title class="text-subtitle-1 font-weight-bold pa-0">{{ title }}</v-card-title>
       <v-spacer></v-spacer>
-
-      <v-btn-toggle
-        v-if="showToggle"
-        :model-value="toggle"
-        @update:model-value="$emit('toggle-change', $event)"
-        density="compact"
-        divided
-      >
-        <v-btn value="top10" class="text-capitalize px-3" style="height: 32px;"
-          >Top 10</v-btn
-        >
-        <v-btn value="all" class="text-capitalize px-3" style="height: 32apx;"
-          >All</v-btn
-        >
-        <v-btn
-          value="bottom10"
-          class="text-capitalize px-3"
-          style="height: 32px;"
-          >Bottom 10</v-btn
-        >
+      <v-btn-toggle v-if="showToggle" :model-value="toggle" @update:model-value="$emit('toggle-change', $event)"
+        density="compact" divided>
+        <v-btn value="top10" class="text-capitalize px-3">Top 10</v-btn>
+        <v-btn value="all" class="text-capitalize px-3">All</v-btn>
+        <v-btn value="bottom10" class="text-capitalize px-3">Bottom 10</v-btn>
       </v-btn-toggle>
     </div>
-
     <v-divider class="mb-4"></v-divider>
-
-    <v-card-text class="pa-4 d-flex flex-column" style="flex-grow: 1;">
+    <v-card-text class="pa-4 d-flex flex-column flex-grow-1">
       <template v-if="!isLoading && hasData">
-        <BarChart
-          :labels="chartLabels"
-          :datasets="chartDatasets"
-          :options="barChartOptions"
-        />
+        <BarChart :labels="chartLabels" :datasets="chartDatasets" :options="barChartOptions" />
       </template>
-      <template v-else-if="isLoading">
-        <div class="d-flex justify-center align-center fill-height">
-          <v-progress-circular
-            indeterminate
-            color="primary"
-            size="64"
-          ></v-progress-circular>
-        </div>
-      </template>
-      <template v-else>
-        <div
-          class="d-flex justify-center align-center fill-height text-grey-darken-1"
-        >
-          No data available.
-        </div>
-      </template>
+      <div v-else-if="isLoading" class="d-flex justify-center align-center fill-height">
+        <v-progress-circular indeterminate color="primary"></v-progress-circular>
+      </div>
     </v-card-text>
   </v-card>
 </template>
 
 <script setup lang="ts">
 import { computed } from 'vue';
-import type { PropType } from 'vue';
 import BarChart from '@/page-components/charts/BarChart.vue';
-import { type ChartOptions, type ChartDataset } from 'chart.js';
 import { generateBrightColors } from '@/utils/colors';
-interface BarChartDataItem {
-  label: string;
-  values: number[];
-}
-const props = defineProps({
-  title: { type: String, required: true },
-  data: { type: Array as PropType<BarChartDataItem[]>, required: true },
-  segmentLabels: { type: Array as PropType<string[]>, required: true },
-  colors: { type: Array as PropType<string[]>, default: () => [] },
-  showToggle: {
-    type: Boolean,
-    default: false,
-  },
-  toggle: {
-    type: String,
-    default: 'top10',
-  },
-  isLoading: {
-    type: Boolean,
-    default: false,
-  },
+
+const props = defineProps(['title', 'data', 'segmentLabels', 'isLoading', 'showToggle', 'toggle']);
+const emit = defineEmits(['click-bar', 'toggle-change']);
+
+const chartLabels = computed(() => props.data?.map((item: any) => item.label) || []);
+const chartDatasets = computed(() => {
+  return props.segmentLabels.map((label: string, idx: number) => ({
+    label,
+    data: props.data.map((item: any) => item.values[idx] || 0),
+    backgroundColor: generateBrightColors(props.segmentLabels.length)[idx]
+  }));
 });
-defineEmits(['toggle-change']);
-const chartColors = computed<string[]>(() => {
-  if (props.colors && props.colors.length > 0) {
-    return props.colors.filter((c): c is string => !!c);
-  }
-  return generateBrightColors(
-    Math.max(props.segmentLabels.length, props.colors.length || 0)
-  );
-});
-const chartLabels = computed<string[]>(() => {
-  return props.data.map(item => item.label);
-});
-const chartDatasets = computed<ChartDataset<'bar', number[]>[]>(() => {
-  return props.segmentLabels.map((segmentLabel, segmentIndex) => {
-    const color = chartColors.value[segmentIndex] ?? '#ccc';
-    return {
-      label: segmentLabel,
-      data: props.data.map(item => item.values[segmentIndex] || 0),
-      backgroundColor: color,
-      borderColor: '#fff',
-      borderWidth: 1,
-    };
-  });
-});
-const barChartOptions = computed<ChartOptions<'bar'>>(() => ({
+
+const barChartOptions = computed(() => ({
+  responsive: true,
+  maintainAspectRatio: false,
   plugins: {
+    // 1. NYALAKAN LEGEND (Agar nama Brand muncul di bawah/atas chart)
     legend: {
-      display: false,
-      position: 'bottom',
-      labels: { boxWidth: 12, boxHeight: 12, padding: 20 },
+      display: false
     },
+
+    // 2. NYALAKAN TOOLTIP (Agar nilai muncul saat hover)
     tooltip: {
-      enabled: true,
+      enabled: true, // Ubah jadi true
+      mode: 'nearest', // PENTING: Agar tooltip "pintar" memilih batang terdekat
+      intersect: true, // PENTING: Hanya muncul jika kursor kena batangnya
+      backgroundColor: 'rgba(0, 0, 0, 0.8)',
+      padding: 10,
       callbacks: {
-        label: (context) => `${context.dataset.label}: ${context.parsed.y}`,
-      },
+        // Custom format: "Nama Brand: 123"
+        label: function (context: any) {
+          let label = context.dataset.label || '';
+          if (label) {
+            label += ': ';
+          }
+          if (context.parsed.y !== null) {
+            label += context.parsed.y;
+          }
+          return label;
+        }
+      }
     },
+
+    // 3. MATIKAN DATA LABELS (Jaga-jaga jika plugin terinstall global)
+    // Agar angka tidak muncul menumpuk di dalam batang
+    datalabels: {
+      display: false
+    }
+  },
+
+  onClick: (event: any, elements: any[]) => {
+    if (elements.length > 0) {
+      const index = elements[0].index;
+      emit('click-bar', chartLabels.value[index]);
+    }
+  },
+  onHover: (event: any, elements: any[]) => {
+    event.native.target.style.cursor = elements.length > 0 ? 'pointer' : 'default';
   },
   scales: {
-    x: { stacked: true, grid: { display: false } },
-    y: { stacked: true, grid: { color: 'rgba(0,0,0,0.05)' } },
-  },
-}));
-const hasData = computed(
-  () =>
-    props.data &&
-    props.data.length > 0 &&
-    props.segmentLabels &&
-    props.segmentLabels.length > 0
-);
-</script>
+    x: {
+      stacked: true, // WAJIB TRUE agar trik "Diagonal" bekerja visualnya
+      display: true,
+      grid: {
+        display: false // Opsional: Hilangkan garis grid vertikal biar bersih
+      },
+      ticks: {
+        // Anda bisa set true jika ingin nama muncul di bawah batang juga
+        // atau false jika cukup lihat dari Legend warna
+        display: false,
+      }
+    },
+    y: {
+      stacked: true, // WAJIB TRUE
+      beginAtZero: true,
+      ticks: {
+        font: { size: 10 }
+      }
+    }
+  }
+} as any));
 
-<style scoped>
-.v-btn-toggle .v-btn--active {
-  background-color: rgba(var(--v-theme-primary), 0.1) !important;
-  color: rgb(var(--v-theme-primary)) !important;
-}
-</style>
+const hasData = computed(() => props.data?.length > 0);
+</script>

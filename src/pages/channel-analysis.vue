@@ -1,9 +1,5 @@
 <template>
   <div>
-    <PageTitle
-      title="Channel Analysis"
-      class="mb-6"
-    />
     <v-tabs
       v-model="currentTab"
       align-tabs="center"

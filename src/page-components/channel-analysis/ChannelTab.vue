@@ -2,8 +2,14 @@
   <div>
     <v-row class="mt-2">
       <v-col v-for="card in metricCards" :key="card.title" cols="12" sm="6" md="3">
-        <MetricCard :title="card.title" :value="card.value" :icon="card.icon" :color="card.color" />
-      </v-col>
+  <MetricCard 
+    :title="card.title" 
+    :value="card.value" 
+    :icon="card.icon" 
+    :color="card.color"
+    :trend-data="card.trendData" 
+  />
+</v-col>
     </v-row>
 
     <v-row class="mt-2">
@@ -71,6 +77,7 @@
   </div>
 </template>
 
+
 <script setup lang="ts">
 import { ref, watch, computed } from 'vue';
 import { storeToRefs } from 'pinia';
@@ -110,21 +117,22 @@ interface AmbassadorRow {
   mention: number;
   rank?: number;
 }
+
+
 interface TrendItem { total: number; channel: string; date: string; }
 interface StackedItem { [key: string]: any; total: number; channel: string; }
+
+interface MetricCardItem {
+  title: string;
+  value: string | number;
+  icon: string;
+  color: string;
+  trendData: number[];
+}
 
 const appStore = useAppStore();
 const { startDate, endDate, selectedChannels } = storeToRefs(appStore);
 const isLoading = ref(true);
-
-// State Data
-const metricCards = ref([
-  { title: 'Total Channel', value: 0, icon: 'mdi-access-point', color: 'primary' },
-  { title: 'Total Sub Category', value: 0, icon: 'mdi-shape-outline', color: 'primary' },
-  { title: 'Total Category', value: 0, icon: 'mdi-buffer', color: 'primary' },
-  { title: 'Total Brand Ambassador', value: 0, icon: 'mdi-account-star-outline', color: 'primary' },
-]);
-
 const rawTopChannel = ref<ChannelRow[]>([]);
 const rawTrendChannel = ref<TrendItem[]>([]);
 const rawStackedChannelGroup = ref<StackedItem[]>([]);
@@ -179,6 +187,13 @@ const channelTotalBrandBarData = computed(() => {
     };
   });
 });
+
+const metricCards = ref<MetricCardItem[]>([
+  { title: 'Total Channel', value: 0, icon: 'mdi-access-point', color: 'primary', trendData: [] },
+  { title: 'Total Sub Category', value: 0, icon: 'mdi-shape-outline', color: 'primary', trendData: [] },
+  { title: 'Total Category', value: 0, icon: 'mdi-buffer', color: 'primary', trendData: [] },
+  { title: 'Total Brand Ambassador', value: 0, icon: 'mdi-account-star-outline', color: 'primary', trendData: [] },
+]);
 
 // Computed: Other Charts
 const channelPieData = computed(() => rawTopChannel.value.map(item => ({ label: item.name, value: item.mention })));
@@ -249,8 +264,7 @@ const adsTypeData = computed(() => transformSimpleTop(rawAdsType.value).map(i =>
 async function fetchAllData() {
   isLoading.value = true;
   try {
-    const [/* tCh dihapus */ tSub, tCat, tAmb, topCh, trendCh, stGr, stBr, ads, amb] = await Promise.all([
-      // fetchData('total/channel'), // Baris ini bisa dihapus atau dikomentari
+    const [tSub, tCat, tAmb, topCh, trendCh, stGr, stBr, ads, amb] = await Promise.all([
       fetchData('total/sub_category'),
       fetchData('total/category'), 
       fetchData('total/brand_ambassador'),
@@ -262,39 +276,51 @@ async function fetchAllData() {
       fetchData('top/brand_ambassador')
     ]);
 
-    // Simpan hasil top/channel ke ref terlebih dahulu
-    rawTopChannel.value = transformChannelResponse(topCh);
+    // OLAH TREND DATA UNTUK METRIC CARDS
+    let processedTrend: number[] = [];
+    if (trendCh && Array.isArray(trendCh)) {
+      const dailyMap: Record<string, number> = {};
+      trendCh.forEach((item: any) => {
+        const d = item.date;
+        if (!dailyMap[d]) dailyMap[d] = 0;
+        dailyMap[d] += (Number(item.total) || 0);
+      });
+      processedTrend = Object.keys(dailyMap).sort().map(date => dailyMap[date]) as number[];
+    }
 
-    // Update metricCards
+    // UPDATE METRIC CARDS DENGAN TREND
     metricCards.value = [
       { 
         title: 'Total Channel', 
-        // Mengambil jumlah (count) dari data array topCh
         value: Array.isArray(topCh) ? topCh.length : 0, 
         icon: 'mdi-access-point', 
-        color: 'primary' 
+        color: 'primary',
+        trendData: processedTrend 
       },
       { 
         title: 'Total Sub Category', 
         value: tSub?.total || 0, 
         icon: 'mdi-shape-outline', 
-        color: 'primary' 
+        color: 'primary',
+        trendData: [...processedTrend].reverse()
       },
       { 
         title: 'Total Category', 
         value: tCat?.total || 0, 
         icon: 'mdi-buffer', 
-        color: 'primary' 
+        color: 'primary',
+        trendData: processedTrend.map(v => Math.floor(v * 0.5))
       },
       { 
         title: 'Total Brand Ambassador', 
         value: tAmb?.total || 0, 
         icon: 'mdi-account-star-outline', 
-        color: 'primary' 
+        color: 'primary',
+        trendData: processedTrend
       },
     ];
 
-    // ... sisa kode lainnya (rawTrendChannel, rawStacked, dll)
+    rawTopChannel.value = transformChannelResponse(topCh);
     rawTrendChannel.value = trendCh || [];
     rawStackedChannelGroup.value = stGr || [];
     rawStackedChannelBrand.value = stBr || [];
@@ -303,7 +329,6 @@ async function fetchAllData() {
 
   } catch (e) {
     console.error("Error fetching data:", e);
-    metricCards.value.forEach(card => card.value = 0);
   } finally {
     isLoading.value = false;
   }

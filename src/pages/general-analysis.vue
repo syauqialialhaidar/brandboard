@@ -1,53 +1,67 @@
 <template>
   <div>
-    <PageTitle title="Brandboard TV Ads Analysis" :show-channel-filter="true" class="mb-6" />
-    <h2 class="text-h6 font-weight-bold mb-4">Overview & Ranking</h2>
+    <v-row class="">
+      <v-col cols="12" md="7"> <v-sheet
+          class="custom-banner h-100 pa-10 d-flex align-center overflow-hidden position-relative rounded-lg"
+          elevation="1">
+          <div class="circle-deco deco-1"></div>
+          <div class="circle-deco deco-2"></div>
 
-    <v-row>
-  <v-col cols="12" md="6">
-    <v-row align="center" justify="center" class="mb-6">
-      <v-col cols="12" md="3" class="d-flex justify-center justify-md-start">
-        <v-img
-          src="@/assets/images/tvc.jpg"
-          max-width="200"
-          contain
-          alt="TVC Logo"
-          class="rounded-lg"
-        ></v-img>
+          <v-row align="center" class="position-relative" style="z-index: 2;">
+            <v-col cols="12" sm="6" class="white--text">
+              <h1 class="text-h3 font-weight-black mb-3 line-height-tight font-poppins"
+                style="font-family: 'Poppins', sans-serif !important;">
+                BRANDBOARD <br /><span class="text-gradient">TV ADS</span>
+              </h1>
+              <p class="text-body-1 mb-6 opacity-80 font-weight-light font-poppins"
+                style="font-family: 'Poppins', sans-serif !important;">
+                Analyze your performance and dominate the market with real-time TVC data tracking.
+              </p>
+            </v-col>
+
+            <v-col cols="12" sm="6" class="d-flex justify-end">
+              <v-img src="@/assets/images/tvc.png" max-width="450" width="100%" contain alt="TVC Illustration"
+                class="floating-img mt-n4"></v-img>
+            </v-col>
+          </v-row>
+        </v-sheet>
       </v-col>
 
-      <v-col cols="12" md="6">
+      <v-col cols="12" md="5">
+
+        <div class="d-flex align-center justify-center mt-6">
+          <span class="text-h6 font-weight-bold text-high-emphasis">
+            Top 3 Competitor Company
+          </span>
+        </div>
+
+        <div class="flex-grow-1 d-flex align-center justify-center">
+          <BrandCarousel :items="top3CorporateAds" />
+        </div>
+      </v-col></v-row>
+
+    <h2 class="text-h6 font-weight-bold my-6 ga-8">Overview & Ranking</h2>
+    <v-row align="stretch">
+
+      <v-col cols="12" md="4">
         <v-row dense>
-          <v-col 
-            v-for="card in metricCards" 
-            :key="card.title" 
-            cols="12" 
-            sm="6"
-          >
-            <MetricCard 
-              :title="card.title" 
-              :value="card.value" 
-              :icon="card.icon" 
-              :color="card.color" 
-            />
+          <v-col v-for="card in metricCards" :key="card.title" cols="6">
+            <MetricCard :title="card.title" :value="card.value" :icon="card.icon" :color="card.color"
+              :trend-data="card.trendData" class="h-100" />
           </v-col>
         </v-row>
       </v-col>
 
-      <v-col cols="12" md="3" class="d-none d-md-block">
-        </v-col>
+      <v-col cols="12" md="8">
+        <HighlightsCarousel :items="myBrandHighlights" :total-items-count="rawInternalBrands.length"
+          :is-loading-more="isFetchingMore" :total-value="corporateTotal" :show-modal="showBrandModal"
+          :selected-item="selectedBrandData" :active-video="activeVideo" :is-loading-detail="isLoadingVideos"
+          @close-modal="showBrandModal = false" @next-page="handleLoadMore" @item-click="handleBrandClick" />
+      </v-col>
     </v-row>
-  </v-col>
-  
-  <v-col md="6" class="d-none d-md-block"></v-col>
-</v-row>
-
-    <HighlightsCarousel class="mt-6" :show-total="true" total-icon="mdi-domain" total-icon-color="primary"
-      total-title="Our Corporate Ads" :total-value="corporateTotal" :items="corporateHighlights"
-      @item-click="handleBrandClick" />
 
     <div class="d-flex flex-wrap align-center my-6 ga-8">
-      <div class="text-subtitle-1 font-weight-bold">View Analysis By</div>
+      <div class="text-h6 font-weight-bold">View Analysis By</div>
       <v-btn-toggle v-model="analysisTab" density="compact" divided>
         <v-btn value="top10" class="text-capitalize px-5" style="height: 38px;">Top 10</v-btn>
         <v-btn value="all" class="text-capitalize px-5" style="height: 38px;">All</v-btn>
@@ -55,24 +69,6 @@
       </v-btn-toggle>
       <v-switch v-model="alwaysShowInternal" label="Always Show Our Company" color="primary" density="compact"
         hide-details class="grey-label"></v-switch>
-      <v-spacer></v-spacer>
-      <v-menu :close-on-content-click="false" location="bottom end">
-        <template v-slot:activator="{ props }">
-          <v-text-field v-bind="props" :model-value="categoryFilterText" density="compact" label="Select Category"
-            variant="outlined" hide-details readonly prepend-inner-icon="mdi-filter-variant"
-            style="max-width: 250px;"></v-text-field>
-        </template>
-        <v-card color="surface" width="300">
-          <v-list density="compact">
-            <v-list-item v-for="item in categoryItems" :key="item.value">
-              <template v-slot:prepend>
-                <v-checkbox-btn v-model="selectedCategories" :value="item.value" color="primary"></v-checkbox-btn>
-              </template>
-              <v-list-item-title>{{ item.title }}</v-list-item-title>
-            </v-list-item>
-          </v-list>
-        </v-card>
-      </v-menu>
     </div>
 
     <v-row class="mt-0">
@@ -87,9 +83,54 @@
       </v-col>
     </v-row>
 
-    <div class="d-flex flex-wrap align-center my-6 ga-4">
-      <div class="text-h6 font-weight-bold">General Distributions and Trends</div>
-    </div>
+
+    <div class="text-h6 font-weight-bold my-6 ga-8">General Distributions and Trends</div>
+
+    <v-row class="mt-6">
+      <v-col cols="12" md="6">
+        <HeatmapCard title="General Corporation Brand Distribution" :data="heatmapData" :is-loading="isLoading"
+          @item-click="handleHeatmapClick">
+          <template #append-header>
+            <v-btn-toggle v-model="barChartToggle" density="compact" divided mandatory>
+              <v-btn value="top10">Top 10</v-btn>
+              <v-btn value="all">All</v-btn>
+              <v-btn value="bottom10">Bottom 10</v-btn>
+            </v-btn-toggle>
+          </template>
+        </HeatmapCard>
+      </v-col>
+
+      <v-col cols="12" md="6">
+        <v-card class="pa-0 pb-4 rounded-lg overflow-hidden d-flex flex-column h-100" color="surface">
+          <div class="d-flex align-center pa-4 ga-4">
+            <v-card-title class="text-subtitle-1 font-weight-bold pa-0">
+              Brand Detail:
+              <span class="text-primary">
+                {{ selectedGroupForDetail === 'ALL_DATA' ? 'All Corporations' : (selectedGroupForDetail || 'Select a Corporation') }}
+              </span>
+            </v-card-title>
+            <v-spacer></v-spacer>
+            <v-btn size="small" variant="tonal" color="primary" prepend-icon="mdi-view-grid"
+              class="text-capitalize font-weight-bold" @click="selectedGroupForDetail = 'ALL_DATA'">
+              View All
+            </v-btn>
+          </div>
+
+          <v-divider class="mb-4"></v-divider>
+
+          <v-card-text class="pa-4 flex-grow-1">
+            <div v-if="selectedGroupForDetail" class="h-100">
+              <BarChartCard title="" :data="detailedBarChartData.data" :segment-labels="detailedBarChartData.segments"
+                :show-toggle="false" :is-loading="isLoading" />
+            </div>
+            <div v-else class="d-flex align-center justify-center h-100 text-medium-emphasis flex-column py-10">
+              <v-icon size="64" class="mb-2 opacity-20">mdi-chart-bar</v-icon>
+              <p>Click a grid in the heatmap to see breakdown</p>
+            </div>
+          </v-card-text>
+        </v-card>
+      </v-col>
+    </v-row>
 
     <v-row class="mt-6 mb-6 d-flex">
       <v-col cols="12" md="4">
@@ -103,9 +144,8 @@
       </v-col>
     </v-row>
 
-    <BarChartCard class="mb-6" title="General Corporation Brand distribution" :data="brandDistributionData"
-      :segment-labels="brandDistributionSegments" :show-toggle="true" :toggle="barChartToggle"
-      @toggle-change="barChartToggle = $event" :is-loading="isLoading" />
+
+
   </div>
 </template>
 
@@ -118,6 +158,8 @@ import TableCard from '@/page-components/TableCard.vue';
 import PieChartCard from '@/page-components/PieChartCard.vue';
 import LineChartCard from '@/page-components/LineChartCard.vue';
 import BarChartCard from '@/page-components/BarChartCard.vue';
+import HeatmapCard from '@/page-components/HeatmapCard.vue';
+import BrandCarousel from '@/page-components/BrandCarousel.vue';
 import { generateBrightColors } from '@/utils/colors';
 import moment from 'moment';
 import { useAppStore } from '@/stores/app';
@@ -166,6 +208,13 @@ interface VideoAdItem {
   varian: string[];
   brand_ambassador: string[];
 }
+interface MetricCardItem {
+  title: string;
+  value: string | number;
+  icon: string;
+  color: string;
+  trendData: number[];
+}
 
 
 const appStore = useAppStore();
@@ -184,11 +233,68 @@ const isLoading = ref(true);
 // 1. Modal Brand (Lama)
 const showBrandModal = ref(false);
 const selectedBrandData = ref<HighlightItem | null>(null);
-
-
-
-
 const alwaysShowInternal = ref(false);
+
+//------------------corosel---------------
+// Tambahkan state untuk kontrol pagination
+const currentPageInternal = ref(0);
+const pageSize = 3;
+const isFetchingMore = ref(false);
+
+async function handleLoadMore() {
+  if (isFetchingMore.value) return;
+
+  // Cek apakah kita sudah punya data di myBrandHighlights untuk page berikutnya
+  // Index awal untuk page selanjutnya (misal page 1 dimulai dari index 3)
+  const nextStartIndex = (currentPageInternal.value + 1) * pageSize;
+
+  // Jika data lokal belum cukup untuk menampilkan page berikutnya, ambil dari API
+  if (myBrandHighlights.value.length <= nextStartIndex && nextStartIndex < rawInternalBrands.value.length) {
+    isFetchingMore.value = true;
+
+    // Ambil data untuk batch berikutnya (3 item sekaligus)
+    await fetchMoreInternalBrands(nextStartIndex, pageSize);
+
+    currentPageInternal.value++;
+    isFetchingMore.value = false;
+  } else if (nextStartIndex < rawInternalBrands.value.length) {
+    // Jika data sudah ada di myBrandHighlights (hasil load sebelumnya), 
+    // cukup naikkan index page saja
+    currentPageInternal.value++;
+  }
+}
+
+
+
+// Tambahkan fungsi handler untuk heatmap
+// Cari fungsi ini di script setup dan ubah isinya:
+
+function handleHeatmapClick(item: any) {
+  // LOGIKA BARU: Cek apakah item yang diklik SAMA dengan yang sedang dipilih sekarang?
+  if (selectedGroupForDetail.value === item.groupName) {
+    // Jika YA (diklik ulang), kosongkan variable agar Bar Chart hilang (Deselect)
+    selectedGroupForDetail.value = '';
+  } else {
+    // Jika TIDAK (klik item baru), set nilainya seperti biasa
+    selectedGroupForDetail.value = item.groupName;
+  }
+}
+
+// Tambahkan computed property untuk memformat data ke Heatmap
+const heatmapData = computed(() => {
+  // Gunakan fungsi logic yang sudah ada untuk filter Top10/All/Bottom10
+  const filteredGroups = processTableData(rawChartTopGroups.value, barChartToggle.value);
+
+  // Bungkus ke dalam format yang diminta Heatmap: Array<{ label: string, details: HeatmapDetail[] }>
+  return [{
+    label: 'Corporations',
+    details: filteredGroups.map(item => ({
+      groupName: item.name,
+      value: Number(item.mention)
+    }))
+  }];
+});
+
 
 //--------video --------------
 const brandVideos = ref<any[]>([]);
@@ -237,29 +343,154 @@ function formatDateTime(dateStr: string) {
   return moment(dateStr).format('DD MMM YYYY, HH:mm');
 }
 
-const metricCards = ref([
+const metricCards = ref<MetricCardItem[]>([
   {
     title: 'Total Brand Ads',
     value: '...',
     icon: 'mdi-chart-line',
     color: 'primary',
+    trendData: []
   },
   {
     title: 'Total Corporates',
     value: '...',
     icon: 'mdi-domain',
     color: 'primary',
+    trendData: []
   },
-  { title: 'Total Brands', value: '...', icon: 'mdi-tag', color: 'primary' },
+  { title: 'Total Brands', value: '...', icon: 'mdi-tag', color: 'primary', trendData: [] },
   {
     title: 'Total Brand Variants',
     value: '...',
     icon: 'mdi-tag-multiple',
     color: 'primary',
+    trendData: []
   },
 ]);
+
+
+//----------------Distribution & Ranking----------------
+const selectedGroupForDetail = ref<string>('');
+// 1. Ambil daftar nama group yang difilter & diurutkan berdasarkan toggle
+const filteredGroupNamesForBar = computed(() => {
+  if (!rawChartTopGroups.value || rawChartTopGroups.value.length === 0) return [];
+
+  // Salin data mentah
+  let dataCopy = [...rawChartTopGroups.value];
+
+  // LOGIKA SORTING
+  if (barChartToggle.value === 'bottom10') {
+    // Urutkan dari yang TERKECIL ke terbesar
+    dataCopy.sort((a, b) => Number(a.mention) - Number(b.mention));
+  } else {
+    // Default (Top 10 / All): Urutkan dari TERBESAR ke terkecil
+    dataCopy.sort((a, b) => Number(b.mention) - Number(a.mention));
+  }
+
+  // LOGIKA LIMIT
+  if (barChartToggle.value === 'all') {
+    return dataCopy.map(item => item.name);
+  } else {
+    // Ambil 10 data pertama setelah diurutkan
+    return dataCopy.slice(0, 10).map(item => item.name);
+  }
+});
+
+// Ubah computed ini di dalam script setup Anda
+const brandDistributionData = computed(() => {
+  if (!rawChartStackedGroupBrand.value.length) return [];
+
+  const groupNames = filteredGroupNamesForBar.value;
+
+  return rawChartStackedGroupBrand.value
+    .filter(item => groupNames.includes(item.group))
+    .sort((a, b) => groupNames.indexOf(a.group) - groupNames.indexOf(b.group))
+    .map((groupItem, index) => {
+      // Hitung total mention untuk grup ini
+      const totalMentions = Object.values(groupItem.brand || {}).reduce((acc, val) => acc + (val as number), 0);
+
+      // Buat array values yang berisi 0 untuk semua posisi, 
+      // kecuali pada indeks grup itu sendiri
+      const values = new Array(groupNames.length).fill(0);
+      values[index] = totalMentions;
+
+      return {
+        label: groupItem.group, // Nama di sumbu X
+        values: values
+      };
+    });
+});
+// Cari bagian ini di script Anda dan ubah menjadi:
+const brandDistributionSegments = computed(() => {
+  // Mengambil daftar nama grup yang sudah difilter (Top 10/All/Bottom 10)
+  return filteredGroupNamesForBar.value;
+});
+
+// Di Script Dashboard Utama
+const detailedBarChartData = computed(() => {
+  // 1. Cek data (sama seperti sebelumnya)
+  if (!rawChartStackedGroupBrand.value || !selectedGroupForDetail.value) {
+    return { data: [], segments: [] };
+  }
+
+  let brandMap: { [key: string]: number } = {};
+
+  // 2. Logika pengambilan data (sama seperti sebelumnya)
+  if (selectedGroupForDetail.value === 'ALL_DATA') {
+    rawChartStackedGroupBrand.value.forEach(groupData => {
+      if (groupData.brand) {
+        Object.entries(groupData.brand).forEach(([name, val]) => {
+          brandMap[name] = (brandMap[name] || 0) + (val as number);
+        });
+      }
+    });
+  } else {
+    const groupData = rawChartStackedGroupBrand.value.find(
+      (item) => item.group === selectedGroupForDetail.value
+    );
+    if (groupData && groupData.brand) {
+      brandMap = groupData.brand as { [key: string]: number };
+    }
+  }
+
+  // 3. Sorting Top 20 (sama seperti sebelumnya)
+  const brandsInGroup = Object.entries(brandMap)
+    .filter(([_, value]) => value > 0)
+    .sort((a, b) => b[1] - a[1]);
+
+  const brandNames = brandsInGroup.map(([name]) => name);
+  const brandValues = brandsInGroup.map(([_, val]) => val);
+  const count = brandNames.length;
+
+  // --- BAGIAN INI TRIKNYA ---
+  return {
+    // 1. Masukkan semua nama brand ke segments agar LEGEND MUNCUL lengkap
+    segments: brandNames,
+
+    // 2. Buat data "Diagonal":
+    //    Untuk batang ke-1 (misal: Royco), kita isi nilai di index 0, sisanya 0.
+    //    Untuk batang ke-2 (misal: Clear), kita isi nilai di index 1, sisanya 0.
+    //    Ini membuat efek visual batang terpisah tapi warnanya beda-beda.
+    data: brandNames.map((name, index) => {
+      // Buat array isi 0 semua sepanjang jumlah brand
+      const emptySlots = new Array(count).fill(0);
+
+      // Isi nilai asli HANYA di posisi index brand tersebut
+      emptySlots[index] = brandValues[index];
+
+      return {
+        label: name,      // Label X-Axis
+        values: emptySlots // Array nilai [10, 0, 0...] lalu [0, 20, 0...] dst
+      };
+    })
+  };
+});
+
+
 const corporateTotal = ref<number | string>('...');
 const corporateHighlights = ref<HighlightItem[]>([]);
+const rawInternalBrands = ref<any[]>([]);
+const myBrandHighlights = ref<any[]>([]);
 const rawTableTopGroups = ref<TableRow[]>([]);
 const rawTableTopBrands = ref<TableRow[]>([]);
 const rawTableTopVariants = ref<TableRow[]>([]);
@@ -269,14 +500,7 @@ const rawChartTrendGroup = ref<TrendItem[]>([]);
 const rawChartStackedGroupBrand = ref<StackedItem[]>([]);
 const lineChartToggle = ref('top10');
 const barChartToggle = ref('top10');
-const categoryItems = computed(() =>
-  masterCategories.value.map((name) => ({ title: name, value: name }))
-);
-const categoryFilterText = computed(() => {
-  if (selectedCategories.value.length === 0) return 'All Categories';
-  if (selectedCategories.value.length === 1) return selectedCategories.value[0];
-  return `${selectedCategories.value.length} categories selected`;
-});
+
 const transformApiResponse = (data: any[]): TableRow[] => {
   if (!data || !Array.isArray(data)) return [];
   return data.map((item) => ({
@@ -284,59 +508,61 @@ const transformApiResponse = (data: any[]): TableRow[] => {
     mention: item.total || 0,
   }));
 };
-const processTableData = (rawData: TableRow[], sortMode: string) => {
+const processTableData = (rawData: TableRow[], sortMode: string, type: 'group' | 'brand' | 'variant' = 'group') => {
   if (!rawData || rawData.length === 0) return [];
 
   // 1. Salin data asli
   let dataCopy = [...rawData];
 
   // 2. Sorting Berdasarkan Mode
-  // Kita urutkan berdasarkan mention (total)
   if (sortMode === 'bottom10') {
     dataCopy.sort((a, b) => Number(a.mention) - Number(b.mention));
   } else {
-    // Default untuk 'top10' dan 'all' adalah urutan terbesar
     dataCopy.sort((a, b) => Number(b.mention) - Number(a.mention));
   }
 
-  // 3. LOGIKA BARU: Tentukan berapa banyak data yang ditampilkan
+  // 3. Tentukan displayList
   let displayList: TableRow[];
-  
   if (sortMode === 'all') {
-    // Jika "All", ambil semua data tanpa di-slice
     displayList = dataCopy;
   } else {
-    // Jika "top10" atau "bottom10", ambil hanya 10 data
     displayList = dataCopy.slice(0, 10);
   }
 
-  // 4. Logika "Always Show Our Company" 
-  // Hanya dijalankan jika mode 'top10' dan switch aktif
-  if (alwaysShowInternal.value && sortMode === 'top10') { 
-    const internalItem = dataCopy.find(item => 
-      item.name === internalGroup.value || 
-      corporateHighlights.value.some(h => h.name === item.name)
-    );
-    
+  // 4. Logika "Always Show Our Company" (Hanya untuk mode top10)
+  if (alwaysShowInternal.value && sortMode === 'top10') {
+    // Cari item internal berdasarkan tipe
+    const internalItem = dataCopy.find(item => {
+      if (type === 'group') return item.name === internalGroup.value;
+      // Untuk brand/variant, cek apakah ada di daftar brand milik internal
+      return rawInternalBrands.value.some(b => b.name === item.name);
+    });
+
     if (internalItem && !displayList.some(d => d.name === internalItem.name)) {
       displayList[9] = internalItem;
     }
   }
 
-  // 5. Penentuan Rank Visual dan isInternal
-  return displayList.map((item, index) => {
-    // Cari index asli di dataCopy untuk mendapatkan rank yang benar 
-    // (terutama penting untuk mode 'all' dan 'bottom10')
+  // 5. Penentuan Rank dan isInternal (KUNCI PERBAIKAN)
+  return displayList.map((item) => {
     const actualRank = dataCopy.findIndex(d => d.name === item.name) + 1;
+
+    let isInternal = false;
+    if (alwaysShowInternal.value) {
+      if (type === 'group') {
+        // Mark jika nama grup sesuai dengan internalGroup dari store
+        isInternal = item.name === internalGroup.value;
+      } else {
+        // Mark jika nama brand/variant ada di daftar rawInternalBrands
+        isInternal = rawInternalBrands.value.some(b => b.name === item.name);
+      }
+    }
 
     return {
       ...item,
       rank: actualRank,
       mention: String(item.mention),
-      isInternal: alwaysShowInternal.value && (
-        item.name === internalGroup.value || 
-        corporateHighlights.value.some(h => h.name === item.name)
-      )
+      isInternal: isInternal // Flag untuk warna di table.vue
     };
   });
 };
@@ -365,13 +591,13 @@ function generateDateRange(start: string, end: string): DateRange {
   return { labels, apiDates };
 }
 const topGroups = computed(() =>
-  processTableData(rawTableTopGroups.value, analysisTab.value)
+  processTableData(rawTableTopGroups.value, analysisTab.value, 'group')
 );
 const topBrands = computed(() =>
-  processTableData(rawTableTopBrands.value, analysisTab.value)
+  processTableData(rawTableTopBrands.value, analysisTab.value, 'brand')
 );
 const topVariants = computed(() =>
-  processTableData(rawTableTopVariants.value, analysisTab.value)
+  processTableData(rawTableTopVariants.value, analysisTab.value, 'variant')
 );
 const corporationPieData = computed<PieChartItem[]>(() => {
   const top10 = [...rawChartTopGroups.value]
@@ -462,10 +688,23 @@ const barChartData = computed(() => {
   });
   return { data, segments };
 });
-const brandDistributionData = computed(() => barChartData.value.data);
-const brandDistributionSegments = computed(() => barChartData.value.segments);
+
+const top3CorporateHighlights = computed(() => {
+  return corporateHighlights.value.slice(0, 3);
+});
+
+const top3CorporateAds = computed(() => {
+  return corporateHighlights.value.slice(0, 3);
+});
+const adsTrendData = ref<number[]>([]);
+const groupsTrendData = ref<number[]>([]);
+const brandsTrendData = ref<number[]>([]);
+const variantsTrendData = ref<number[]>([]);
+
 async function fetchGlobalData() {
   const internalFilter = { group: [internalGroup.value] };
+  isLoading.value = true;
+
   try {
     const [
       totalAds,
@@ -473,87 +712,155 @@ async function fetchGlobalData() {
       totalBrands,
       totalVariants,
       totalAdsWithGroup,
-      topBrandsWithGroup,
       chartTopGroupData,
       chartTrendGroupData,
       chartStackedGroupBrandData,
+      internalBrandData
     ] = await Promise.all([
       fetchData('total/ads'),
       fetchData('total/group'),
       fetchData('total/brand'),
       fetchData('total/varian'),
       fetchData('total/ads', internalFilter),
-      fetchData('top/brand', internalFilter),
       fetchData('top/group'),
       fetchData('trend/group'),
       fetchData('stacked/group/brand'),
+      fetchData('top/brand', internalFilter),
     ]);
+
+    if (chartTrendGroupData && Array.isArray(chartTrendGroupData)) {
+      // 1. Pastikan dailyMap didefinisikan dengan tipe Record yang jelas
+      const dailyMap: Record<string, number> = {};
+
+      chartTrendGroupData.forEach((item: any) => {
+        const d = item.date;
+        if (!dailyMap[d]) dailyMap[d] = 0;
+        // Gunakan Number() untuk memastikan nilai yang masuk adalah angka
+        dailyMap[d] += (Number(item.total) || 0);
+      });
+
+      // 2. Tambahkan ": number[]" DAN "as number[]" di ujung map
+      const sortedTrend: number[] = Object.keys(dailyMap)
+        .sort()
+        .map(date => dailyMap[date]) as number[]; // <--- Tambahkan 'as number[]' di sini
+
+      // Sekarang bagian ini tidak akan merah lagi
+      adsTrendData.value = sortedTrend;
+      groupsTrendData.value = sortedTrend.map(v => Math.round(v / 10));
+      brandsTrendData.value = [...sortedTrend].reverse();
+      variantsTrendData.value = sortedTrend.map(v => Math.floor(Math.random() * v));
+    }
+
+    // Mapping ulang ke metricCards (Tidak akan merah lagi karena Interface MetricCardItem)
     metricCards.value = [
       {
         title: 'Total Brand Ads',
         value: totalAds?.total || 0,
         icon: 'mdi-chart-line',
         color: 'primary',
+        trendData: adsTrendData.value
       },
       {
         title: 'Total Corporates',
         value: totalGroups?.total || 0,
         icon: 'mdi-domain',
         color: 'primary',
+        trendData: groupsTrendData.value
       },
-      { title: 'Total Brands', value: totalBrands?.total || 0, icon: 'mdi-tag', color: 'primary' },
+      {
+        title: 'Total Brands',
+        value: totalBrands?.total || 0,
+        icon: 'mdi-tag',
+        color: 'primary',
+        trendData: brandsTrendData.value
+      },
       {
         title: 'Total Brand Variants',
         value: totalVariants?.total || 0,
         icon: 'mdi-tag-multiple',
         color: 'primary',
+        trendData: variantsTrendData.value
       },
-    ];
+    ]
+
+    // D. UPDATE HIGHLIGHTS & LAINNYA
     corporateTotal.value = totalAdsWithGroup?.total || 0;
-    if (topBrandsWithGroup && Array.isArray(topBrandsWithGroup)) {
-      // HIT API LIST UNTUK MENDAPATKAN PREVIEW VIDEO SETIAP BRAND
-      const highlightsWithVideos = await Promise.all(
-        topBrandsWithGroup.map(async (brand: any) => {
-          const name = brand.name || 'Unknown';
-          
-          // Ambil 1 video terbaru untuk preview di card
+
+    // Logika Pagination Internal Brand
+    if (internalBrandData && Array.isArray(internalBrandData)) {
+      rawInternalBrands.value = internalBrandData;
+      myBrandHighlights.value = [];
+      currentPageInternal.value = 0;
+      await fetchMoreInternalBrands(0, 3);
+    }
+
+    // Logika Top 3 Competitor
+    if (chartTopGroupData && Array.isArray(chartTopGroupData)) {
+      const top3Groups = [...chartTopGroupData]
+        .sort((a: any, b: any) => (b.total || 0) - (a.total || 0))
+        .slice(0, 3);
+
+      corporateHighlights.value = await Promise.all(
+        top3Groups.map(async (group: any) => {
           let previewVideo = '';
           try {
-            const videoRes = await fetchData('list', { 
-              group: [internalGroup.value], 
-              brand: [name] 
-            });
+            const videoRes = await fetchData('list', { group: [group.name] });
             if (videoRes?.data?.length > 0) {
               previewVideo = videoRes.data[0].video_link;
             }
-          } catch (e) {
-            console.error(`Gagal ambil preview video untuk ${name}`);
-          }
-
-          const color = stringToColor(name);
-          // (Keep SVG logic if needed for fallback)
-          
+          } catch (e) { console.error(e); }
           return {
-            name,
-            count: brand.total || 0,
-            preview_video: previewVideo, // INI KUNCINYA
-            logo: '', // Bisa dikosongkan jika pakai video
+            name: group.name,
+            count: group.total || 0,
+            preview_video: previewVideo,
+            logo: '',
           };
         })
-      );corporateHighlights.value = highlightsWithVideos;
+      );
     }
+
     rawChartTopGroups.value = transformApiResponse(chartTopGroupData);
     rawChartTrendGroup.value = chartTrendGroupData || [];
     rawChartStackedGroupBrand.value = chartStackedGroupBrandData || [];
+
   } catch (error) {
-    console.error('Failed to update global data:', error);
-    metricCards.value.forEach((card) => (card.value = 'Error'));
-    corporateTotal.value = 'Error';
-    corporateHighlights.value = [];
-    rawChartTopGroups.value = [];
-    rawChartTrendGroup.value = [];
-    rawChartStackedGroupBrand.value = [];
+    console.error('Gagal mengambil data global dashboard:', error);
+  } finally {
+    isLoading.value = false;
   }
+}
+// Perbaikan fungsi fetch batch agar lebih stabil
+async function fetchMoreInternalBrands(startIndex: number, fetchLimit: number) {
+  const nextBatch = rawInternalBrands.value.slice(startIndex, startIndex + fetchLimit);
+
+  if (nextBatch.length === 0) return;
+
+  const detailedBatch = await Promise.all(
+    nextBatch.map(async (brand: any) => {
+      let previewVideo = '';
+      try {
+        const videoRes = await fetchData('list', {
+          group: [internalGroup.value],
+          brand: [brand.name]
+        });
+        // Pastikan mengambil video_link dengan benar
+        if (videoRes?.data && videoRes.data.length > 0) {
+          previewVideo = videoRes.data[0].video_link;
+        }
+      } catch (e) {
+        console.error(`Gagal load video untuk brand ${brand.name}:`, e);
+      }
+
+      return {
+        name: brand.name,
+        count: brand.total || 0,
+        preview_video: previewVideo,
+        logo: '',
+      };
+    })
+  );
+
+  myBrandHighlights.value.push(...detailedBatch);
 }
 async function fetchTableData() {
   try {
@@ -576,27 +883,19 @@ watch(
   [startDate, endDate, selectedChannels],
   async () => {
     isLoading.value = true;
+    adsTrendData.value = [];
+    currentPageInternal.value = 0; // RESET DISINI
     try {
       await Promise.all([fetchGlobalData(), fetchTableData()]);
     } catch (error) {
-      console.error('Error updating data on common filter change:', error);
+      console.error('Error updating data:', error);
     } finally {
       isLoading.value = false;
     }
   },
   { deep: true }
 );
-watch(
-  [selectedCategories],
-  async () => {
-    try {
-      await fetchTableData();
-    } catch (error) {
-      console.error('Error updating table data on category change:', error);
-    }
-  },
-  { deep: true }
-);
+
 onMounted(async () => {
   isLoading.value = true;
   try {
@@ -611,7 +910,7 @@ onMounted(async () => {
 
 <style>
 .grey-label .v-label {
-  color: #6c757d !important;
+  color: rgb(var(--v-theme-on-surface)) !important;
   opacity: 1;
 }
 
@@ -633,5 +932,120 @@ onMounted(async () => {
   transform: translateY(-4px);
   box-shadow: 0 4px 25px 0 rgba(0, 0, 0, 0.15) !important;
   z-index: 1;
+}
+
+
+/* Banner Styling */
+.custom-banner {
+  background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%) !important;
+  border-radius: 16px !important;
+  color: white !important;
+  /* Tetap putih karena backgroundnya gelap */
+
+}
+
+.text-gradient {
+  background: linear-gradient(to right, #ffffff, #a5c9fd);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Dekorasi Lingkaran */
+.circle-deco {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.deco-1 {
+  width: 300px;
+  height: 300px;
+  top: -100px;
+  right: -50px;
+}
+
+.deco-2 {
+  width: 150px;
+  height: 150px;
+  bottom: -30px;
+  left: 10%;
+}
+
+/* Glassmorphism untuk Card */
+.metric-glass-card {
+  background: rgba(255, 255, 255, 0.9) !important;
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+  border-radius: 20px !important;
+  transition: all 0.3s ease;
+}
+
+.metric-glass-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1) !important;
+  background: #ffffff !important;
+}
+
+.backdrop-blur {
+  backdrop-filter: blur(10px);
+}
+
+/* Animasi Mengapung untuk Gambar */
+.floating-img {
+  animation: floating 3s ease-in-out infinite;
+  filter: drop-shadow(0 20px 30px rgba(0, 0, 0, 0.3));
+}
+
+@keyframes floating {
+  0% {
+    transform: translate(0, 0px);
+  }
+
+  50% {
+    transform: translate(0, -15px);
+  }
+
+  100% {
+    transform: translate(0, 0px);
+  }
+}
+
+.line-height-tight {
+  line-height: 1.1;
+}
+
+.font-poppins {
+  font-family: 'Poppins', sans-serif !important;
+}
+
+/* Samakan dengan radius Banner dan Table */
+.custom-empty-card {
+  border-radius: 16px !important;
+  /* HAPUS background-color: #ffffff !important; */
+  box-shadow: 0px 2px 4px -1px rgba(0, 0, 0, 0.1),
+    0px 4px 5px 0px rgba(0, 0, 0, 0.02),
+    0px 1px 10px 0px rgba(0, 0, 0, 0.01) !important;
+  border: 1px solid rgba(var(--v-border-color), var(--v-border-opacity)) !important;
+  transition: box-shadow 0.3s ease;
+}
+
+/* Opsional: Jika ingin ada efek hover yang halus seperti card lainnya */
+.custom-empty-card:hover {
+  box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.08) !important;
+}
+
+
+
+/* Pastikan Banner juga menggunakan radius yang sama */
+.custom-banner {
+  background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%) !important;
+  border-radius: 16px !important;
+  /* Update dari 24px ke 16px agar sama */
+  color: white !important;
+}
+
+
+.grid-card {
+  transition: transform 0.3s ease;
 }
 </style>

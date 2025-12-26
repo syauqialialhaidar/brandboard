@@ -1,199 +1,117 @@
 <template>
-  <v-card class="pa-6 main-container overflow-visible" :class="isDark ? 'theme-dark' : 'theme-light'" elevation="0"
-    rounded="lg">
-    <div class="d-flex flex-column flex-md-row align-stretch gap-6 position-relative" style="z-index: 2;">
-      <v-card v-if="showTotal" class="hero-card-3d d-flex flex-column align-center justify-center flex-shrink-0"
-        rounded="xl">
-        <div class="shine-sweep"></div>
-        <div class="deco-dot top-right"></div>
-        <div class="deco-dot bottom-left"></div>
-        <div
-          class="text-overline text-white font-weight-bold mb-1 text-center px-2 z-index-1 tracking-widest opacity-80">
-          {{ totalTitle }}
-        </div>
-        <div class="hero-number-wrapper z-index-1 my-2">
-          <span class="hero-number text-white">{{ totalValue }}</span>
-        </div>
-        <div class="glow-circle top-left"></div>
-        <div class="glow-circle bottom-right"></div>
-      </v-card>
+  <v-card class="insight-hub-wrapper pa-0 rounded-lg overflow-hidden fill-height" elevation="1" color="surface">
+    <div class="glass-canvas">
 
-      <div class="flex-grow-1 d-flex flex-column" style="min-width: 0;">
-        <div class="d-flex align-end justify-space-between mb-5 flex-wrap gap-4">
-          <div class="d-flex align-center gap-4">
-            <v-btn color="#2563EB" class="cta-btn-3d text-none px-6 text-white font-weight-bold" rounded="pill"
-              height="44">
-              <span>Brand Corporate</span>
-            </v-btn>
-          </div>
-          <div class="d-flex align-center gap-2">
-            <v-btn icon="mdi-arrow-left" variant="text" :class="isDark ? 'nav-btn-dark' : 'nav-btn-light'"
-              class="nav-glass" size="40" @click="scrollLeft"></v-btn>
-            <v-btn icon="mdi-arrow-right" variant="text" :class="isDark ? 'nav-btn-dark' : 'nav-btn-light'"
-              class="nav-glass" size="40" @click="scrollRight"></v-btn>
-          </div>
-        </div>
+      <div class="glass-panel">
+        <header class="header-nav">
+          <div class="brand-identity-group">
+            <div class="category-label-wrapper mb-3">
+              <span class="category-label text-primary font-weight-bold">
+                {{ totalTitle }}
+              </span>
+            </div>
 
-        <div ref="carouselContainer" class="carousel-scroll-area py-4 px-1 mt-auto">
-          <div v-for="(item, index) in items" :key="index" class="carousel-item-wrapper" @click="handleItemClick(item)">
-            <v-card class="item-card-3d d-flex align-center overflow-hidden" :class="getColorVariant(index)"
-              rounded="xl">
-
-              <div class="video-preview-container">
-                <video v-if="item.preview_video" :src="item.preview_video" muted loop autoplay playsinline
-                  class="card-video-bg"></video>
-                <div v-else class="avatar-fallback d-flex align-center justify-center">
-                  <span class="text-h4 font-weight-bold text-white opacity-40">{{ item.name.charAt(0) }}</span>
+            <div class="stats-and-nav d-flex align-center flex-wrap ga-4">
+              <v-sheet class="stats-badge-group elevation-1 border rounded-xl d-flex align-center px-6" height="64">
+                <div class="stat-badge d-flex align-center">
+                  <span class="stat-value text-high-emphasis">{{ totalItemsCount }}</span>
+                  <span class="stat-label text-medium-emphasis ml-2">Brands</span>
                 </div>
-                <div class="video-gradient-overlay"></div>
-              </div>
+                <div class="stat-separator mx-5"></div>
+                <div class="stat-badge d-flex align-center">
+                  <span class="stat-value text-high-emphasis">{{ totalValue }}</span>
+                  <span class="stat-label text-medium-emphasis ml-2">Mentions</span>
+                </div>
+              </v-sheet>
 
-              <div class="text-content pl-4 pr-4 position-relative z-index-2 overflow-hidden">
-                <div class="text-caption font-weight-bold text-white mb-n1 opacity-70">BRAND</div>
-                <div class="text-subtitle-1 font-weight-black text-white text-truncate">{{ item.name }}</div>
-                <div class="d-flex align-baseline mt-1">
-                  <span class="text-h5 font-weight-black text-white text-shadow-soft">{{ item.count }}</span>
-                  <span class="text-caption text-white ml-1 font-weight-medium">ADS</span>
+              <v-sheet class="pagination-suite elevation-1 border rounded-xl d-flex align-center px-4" height="64">
+                <v-btn icon variant="tonal" class="nav-arrow-btn" size="small" color="primary"
+                  :disabled="currentPage === 0" @click="currentPage--">
+                  <v-icon size="18">mdi-chevron-left</v-icon>
+                </v-btn>
+
+                <div class="page-numbers-display px-4 font-weight-bold">
+                  <span class="current-page text-primary">{{ currentPage + 1 }}</span>
+                  <span class="page-divider mx-1 opacity-30">/</span>
+                  <span class="text-medium-emphasis">{{ totalPages }}</span>
+                </div>
+
+                <v-btn icon variant="tonal" class="nav-arrow-btn" size="small" color="primary" :loading="isLoadingMore"
+                  :disabled="currentPage + 1 >= totalPages" @click="handleNext">
+                  <v-icon size="18">mdi-chevron-right</v-icon>
+                </v-btn>
+              </v-sheet>
+            </div>
+          </div>
+        </header>
+
+        <div class="bento-grid mt-8">
+          <v-card v-for="(item, i) in paginatedItems" :key="item.name"
+            :class="['brand-card', `gradient-type-${Number(i) % 3}`]"
+            class="elevation-0 rounded-xl overflow-hidden position-relative" @click="handleItemClick(item)">
+            <div class="card-media-bg">
+              <video v-if="item.preview_video" :src="item.preview_video" muted loop autoplay playsinline
+                class="w-100 h-100" style="object-fit: cover;"></video>
+            </div>
+
+            <div class="card-overlay-content d-flex flex-column justify-center">
+              <div class="text-container">
+                <span class="text-overline font-weight-bold opacity-70">BRAND</span>
+                <h3 class="text-h6 font-weight-black mb-0">{{ item.name }}</h3>
+                <div class="d-flex align-baseline ga-1 mt-1">
+                  <span class="text-h5 font-weight-black">{{ item.count }}</span>
+                  <span class="text-caption font-weight-bold">MENTIONS</span>
                 </div>
               </div>
 
-              <div class="card-shine"></div>
-              <div class="play-indicator">
-                <v-icon icon="mdi-play" color="white" size="18"></v-icon>
-              </div>
-            </v-card>
-          </div>
+              <v-btn icon variant="outlined" class="play-btn" size="x-small">
+                <v-icon size="14">mdi-play</v-icon>
+              </v-btn>
+            </div>
+          </v-card>
         </div>
       </div>
     </div>
 
-    <v-dialog v-model="showModal" max-width="950" transition="scale-transition">
-      <v-card class="rounded-xl overflow-hidden glass-modal" elevation="24">
-        <div class="modal-header d-flex justify-space-between align-center px-8 py-5">
-          <div class="d-flex align-center">
-            <div class="header-icon-box mr-4">
-              <v-icon icon="mdi-play-circle" color="white" size="28"></v-icon>
+    <v-dialog :model-value="showModal" @update:model-value="$emit('close-modal')" max-width="1150"
+      transition="scale-transition">
+      <v-card class="modal-card-premium rounded-xl overflow-hidden">
+        <div class="modal-layout-split">
+          <div class="modal-video-section bg-black d-flex align-center justify-center position-relative">
+            <div v-if="isLoadingDetail" class="loader-state position-absolute">
+              <v-progress-circular indeterminate color="primary" size="60"></v-progress-circular>
             </div>
-            <div>
-              <div class="text-overline text-white opacity-70 mb-n1">Ad Showcase</div>
-              <div class="text-h5 font-weight-black text-white">{{ selectedItem?.name }}</div>
-            </div>
-          </div>
-          <v-btn icon="mdi-close" variant="tonal" color="white" class="close-btn" @click="showModal = false"></v-btn>
-        </div>
-
-        <div class="pa-8 bg-modal-content">
-          <div v-if="isLoading" class="d-flex flex-column justify-center align-center" style="height: 450px;">
-            <v-progress-circular indeterminate color="primary" size="64" width="6"></v-progress-circular>
-            <div class="mt-4 text-body-1 font-weight-medium text-secondary">Fetching latest media...</div>
+            <video v-if="!isLoadingDetail && activeVideo" ref="modalVideo" :src="activeVideo.video_link" autoplay
+              controls class="w-100 h-100"></video>
           </div>
 
-          <div v-else-if="activeVideo">
-            <v-row>
-              <v-col cols="12" lg="7">
-                <div class="video-wrapper elevation-12">
-                  <video :src="activeVideo.video_link" controls autoplay class="main-video-player"></video>
-                  <div class="video-overlay-badge">
-                    <v-chip size="x-small" color="error" class="font-weight-bold" variant="flat">HD ORIGINAL</v-chip>
-                  </div>
-                </div>
-              </v-col>
-
-              <v-col cols="12" lg="5">
-                <v-card variant="flat" class="info-side-card pa-6 rounded-xl border h-100 d-flex flex-column">
-                  <div class="d-flex align-center mb-4">
-                    <v-avatar color="primary" size="48" class="mr-3 elevation-4">
-                      <span class="text-h6 text-white">{{ selectedItem?.name?.charAt(0) }}</span>
-                    </v-avatar>
-                    <div class="overflow-hidden">
-                      <div class="text-h6 font-weight-bold leading-tight text-truncate">{{ activeVideo.nama_video }}
-                      </div>
-                      <div class="text-caption text-medium-emphasis">ID: #{{ activeVideo.id?.toString().slice(-6) ||
-                        'N/A' }}</div>
-                    </div>
-                  </div>
-
-                  <v-divider class="mb-5"></v-divider>
-
-                  <div class="metadata-grid">
-                    <div class="meta-item">
-                      <v-icon icon="mdi-calendar-range" size="18" color="primary"></v-icon>
-                      <div class="ml-3">
-                        <div class="meta-label">Broadcast Date</div>
-                        <div class="meta-value">{{ formatDateTime(activeVideo.time) }}</div>
-                      </div>
-                    </div>
-                    <div class="meta-item">
-                      <v-icon icon="mdi-television-classic" size="18" color="info"></v-icon>
-                      <div class="ml-3">
-                        <div class="meta-label">Channel</div>
-                        <div class="meta-value">{{ activeVideo.channel || 'N/A' }}</div>
-                      </div>
-                    </div>
-                    <div class="meta-item">
-                      <v-icon icon="mdi-tag-multiple" size="18" color="success"></v-icon>
-                      <div class="ml-3">
-                        <div class="meta-label">Category</div>
-                        <div class="meta-value text-truncate">{{ activeVideo.category || 'N/A' }}</div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <v-spacer></v-spacer>
-
-                  <v-btn block color="primary" height="48" class="mt-6 font-weight-bold rounded-lg text-none"
-                    elevation="4">
-                    <v-icon start icon="mdi-chart-box-outline"></v-icon>
-                    Full Analytics Report
-                  </v-btn>
-                </v-card>
-              </v-col>
-            </v-row>
-
-            <div class="mt-8">
-              <div class="d-flex align-center mb-4">
-                <span class="text-subtitle-1 font-weight-black text-uppercase tracking-wider">Production Details</span>
-                <v-divider class="ml-4"></v-divider>
+          <aside class="modal-info-sidebar d-flex flex-column pa-8">
+            <div class="sidebar-top mb-6">
+              <div class="d-flex justify-space-between align-center mb-4">
+                <v-chip color="primary" variant="flat" size="small" class="font-weight-black">Detail Ads</v-chip>
+                <v-btn icon="mdi-close" variant="text" size="small" @click="$emit('close-modal')"></v-btn>
               </div>
+              <h2 class="text-h3 font-weight-black text-high-emphasis">{{ selectedItem?.name }}</h2>
+            </div>
 
+            <div class="sidebar-scroll-content flex-grow-1 overflow-y-auto">
               <v-row dense>
-                <v-col cols="12" sm="4">
-                  <div class="detail-sheet">
-                    <span class="detail-label">Brand Group</span>
-                    <span class="detail-text">{{ activeVideo.group?.[0] || 'N/A' }}</span>
-                  </div>
-                </v-col>
-                <v-col cols="12" sm="4">
-                  <div class="detail-sheet">
-                    <span class="detail-label">Variant / Type</span>
-                    <span class="detail-text">{{ activeVideo.varian?.[0] || 'N/A' }}</span>
-                  </div>
-                </v-col>
-                <v-col cols="12" sm="4">
-                  <div class="detail-sheet">
-                    <span class="detail-label">Sub-Category</span>
-                    <span class="detail-text">{{ activeVideo.sub_category || 'N/A' }}</span>
-                  </div>
-                </v-col>
-                <v-col cols="12">
-                  <div class="detail-sheet ambassador">
-                    <v-icon icon="mdi-account-star" color="amber-darken-2" class="mr-2"></v-icon>
-                    <span class="detail-label mr-2">Ambassador:</span>
-                    <span class="detail-text">{{ activeVideo.brand_ambassador?.length > 0 ?
-                      activeVideo.brand_ambassador.join(', ') : '-' }}</span>
-                  </div>
+                <v-col v-for="(tile, index) in modalDetails" :key="index" cols="12" sm="6">
+                  <v-card variant="outlined" class="pa-4 border rounded-lg d-flex align-center ga-3 h-100">
+                    <v-avatar :color="tile.iconColor || 'grey'" variant="tonal" size="40" rounded="lg">
+                      <v-icon size="20">{{ tile.icon }}</v-icon>
+                    </v-avatar>
+                    <div>
+                      <label class="text-caption font-weight-bold text-medium-emphasis text-uppercase d-block">{{
+                        tile.label }}</label>
+                      <p class="text-body-2 font-weight-bold ma-0 text-high-emphasis">{{ tile.value }}</p>
+                    </div>
+                  </v-card>
                 </v-col>
               </v-row>
             </div>
-          </div>
 
-          <div v-else class="text-center py-16">
-            <v-icon icon="mdi-video-off-outline" size="80" color="grey-lighten-1" class="mb-4"></v-icon>
-            <div class="text-h6 font-weight-bold text-grey-darken-1">No Media Assets Found</div>
-            <div class="text-body-2 text-grey">The requested video is currently unavailable in our archives.</div>
-            <v-btn variant="outlined" color="primary" class="mt-6 px-8" @click="showModal = false">Back to
-              Dashboard</v-btn>
-          </div>
+          </aside>
         </div>
       </v-card>
     </v-dialog>
@@ -202,419 +120,203 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue';
-import { useTheme } from 'vuetify';
-import type { PropType } from 'vue';
-import moment from 'moment';
-import { fetchData } from '@/utils/apiBuilder';
-import { useAppStore } from '@/stores/app';
+
 
 const props = defineProps({
-  showTotal: { type: Boolean, default: true },
-  totalTitle: { type: String, default: 'OUR CORPORATE ADS' },
+  // Data List
+  totalTitle: { type: String, default: 'Corporate Mentions' },
   totalValue: { type: [String, Number], default: '0' },
-  items: { type: Array as PropType<any[]>, required: true },
+  items: { type: Array as any, default: () => [] },
+  totalItemsCount: { type: Number, default: 0 },
+  isLoadingMore: { type: Boolean, default: false },
+
+  // Data Modal (Dikirim dari Page)
+  showModal: { type: Boolean, default: false },
+  isLoadingDetail: { type: Boolean, default: false },
+  selectedItem: { type: Object as () => any, default: null },
+  activeVideo: { type: Object as () => any, default: null }
 });
 
-const emit = defineEmits(['item-click']);
 
-const theme = useTheme();
-const appStore = useAppStore();
-const isDark = computed(() => theme.global.current.value.dark);
+const emit = defineEmits(['next-page', 'item-click', 'close-modal']);
 
-// Modal & Data States
-const showModal = ref(false);
-const isLoading = ref(false);
-const selectedItem = ref<any>(null);
-const brandVideos = ref<any[]>([]);
+const itemsPerPage = 3;
+const currentPage = ref(0);
 
-// Carousel Logic
-const carouselContainer = ref<HTMLElement | null>(null);
-const scrollLeft = () => carouselContainer.value?.scrollBy({ left: -240, behavior: 'smooth' });
-const scrollRight = () => carouselContainer.value?.scrollBy({ left: 240, behavior: 'smooth' });
 
-const activeVideo = computed(() => brandVideos.value.length > 0 ? brandVideos.value[0] : null);
+const getCardClass = (index: number) => {
+  return ['brand-card', `gradient-type-${index % 3}`];
+};
 
-const handleItemClick = async (item: any) => {
-  selectedItem.value = item;
-  showModal.value = true;
-  brandVideos.value = [];
-  isLoading.value = true;
+const totalPages = computed(() => Math.ceil(props.totalItemsCount / itemsPerPage) || 1);
 
-  try {
-    const specificFilter = {
-      group: [appStore.internalGroup],
-      brand: [item.name]
-    };
-    const response = await fetchData('list', specificFilter);
-    if (response && response.data) {
-      brandVideos.value = response.data;
-    }
-  } catch (error) {
-    console.error("Fetch Error:", error);
-  } finally {
-    isLoading.value = false;
+const paginatedItems = computed(() => {
+  const start = currentPage.value * itemsPerPage;
+  return props.items.slice(start, start + itemsPerPage);
+});
+
+const modalDetails = computed(() => [
+  { label: 'Channel', value: props.activeVideo?.channel || '-', icon: 'mdi-television', iconColor: 'blue' },
+  { label: 'Campaign', value: props.activeVideo?.ads_type || 'TVC', icon: 'mdi-bullhorn', iconColor: 'orange' },
+  { label: 'Group', value: props.activeVideo?.group?.[0] || '-', icon: 'mdi-domain', iconColor: 'teal' },
+  { label: 'Category', value: props.activeVideo?.category || '-', icon: 'mdi-shape', iconColor: 'purple' },
+  { label: 'Sub Cat', value: props.activeVideo?.sub_category || '-', icon: 'mdi-format-list-bulleted', iconColor: 'indigo' },
+  { label: 'Variant', value: props.activeVideo?.varian?.[0] || '-', icon: 'mdi-tag-multiple', iconColor: 'pink' },
+]);
+
+const handleNext = () => {
+  const nextPageIndex = currentPage.value + 1;
+  // Jika data di array lokal kurang dari index yang dibutuhkan, minta data baru ke Page
+  if (props.items.length <= nextPageIndex * itemsPerPage && props.items.length < props.totalItemsCount) {
+    emit('next-page');
   }
+  currentPage.value++;
+};
+
+const handleItemClick = (item: any) => {
   emit('item-click', item);
-};
-
-const formatDateTime = (dateStr: string) => {
-  if (!dateStr) return '-';
-  return moment(dateStr).format('DD MMM YYYY, HH:mm');
-};
-
-const getColorVariant = (index: number) => {
-  const variants = ['variant-blue', 'variant-purple', 'variant-pink', 'variant-orange', 'variant-teal'];
-  return variants[index % variants.length];
 };
 </script>
 
 <style scoped>
-/* --- UTILITIES --- */
-.gap-2 {
-  gap: 8px;
-}
-
-.gap-4 {
-  gap: 16px;
-}
-
-.gap-6 {
-  gap: 24px;
-}
-
-.z-index-1 {
-  z-index: 1;
-}
-
-.tracking-widest {
-  letter-spacing: 3px !important;
-}
-
-/* --- MAIN CONTAINER --- */
-.main-container {
-  position: relative;
-  transition: all 0.3s ease;
-  border: none !important;
-}
-
-.theme-light {
-  background-color: #ffffff !important;
-  box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.1) !important;
-}
-
-.theme-dark {
-  background-color: #1e1e1e !important;
-  box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.5) !important;
-}
-
-/* --- HERO CARD --- */
-.hero-card-3d {
-  width: 240px;
-  min-height: 220px;
-  position: relative;
-  overflow: hidden;
-  background: radial-gradient(circle at 100% 0%, #3B82F6, #2563EB, #1E3A8A);
-  box-shadow: 0 20px 40px -10px rgba(37, 99, 235, 0.6);
-}
-
-.hero-number {
-  font-size: 88px;
-  font-weight: 900;
-  line-height: 0.9;
-  letter-spacing: -3px;
-  background: linear-gradient(180deg, #ffffff 20%, #bfdbfe 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
-/* --- CAROUSEL ITEMS --- */
-.carousel-scroll-area {
-  display: flex;
-  overflow-x: auto;
-  gap: 16px;
-  scrollbar-width: none;
-}
-
-.carousel-scroll-area::-webkit-scrollbar {
-  display: none;
-}
-
-.item-card-3d {
-  width: 200px;
-  height: 150px;
-  cursor: pointer;
-  position: relative;
-  transition: all 0.2s ease;
-  background: linear-gradient(180deg, var(--bg-top) 0%, var(--bg-bot) 100%) !important;
-  box-shadow: 0 6px 0 var(--shadow-solid), 0 12px 15px -4px var(--shadow-soft), inset 0 1px 0 rgba(255, 255, 255, 0.3);
-}
-
-.variant-blue {
-  --bg-top: #3B82F6;
-  --bg-bot: #2563EB;
-  --shadow-solid: #1D4ED8;
-  --shadow-soft: rgba(37, 99, 235, 0.4);
-}
-
-.variant-purple {
-  --bg-top: #8B5CF6;
-  --bg-bot: #7C3AED;
-  --shadow-solid: #6D28D9;
-  --shadow-soft: rgba(124, 58, 237, 0.4);
-}
-
-.variant-pink {
-  --bg-top: #F472B6;
-  --bg-bot: #DB2777;
-  --shadow-solid: #BE185D;
-  --shadow-soft: rgba(219, 39, 119, 0.4);
-}
-
-.variant-orange {
-  --bg-top: #FBBF24;
-  --bg-bot: #D97706;
-  --shadow-solid: #B45309;
-  --shadow-soft: rgba(217, 119, 6, 0.4);
-}
-
-.variant-teal {
-  --bg-top: #2DD4BF;
-  --bg-bot: #0D9488;
-  --shadow-solid: #0F766E;
-  --shadow-soft: rgba(13, 148, 136, 0.4);
-}
-
-.item-card-3d:active {
-  transform: translateY(4px);
-  box-shadow: 0 2px 0 var(--shadow-solid);
-}
-
-/* --- MODAL STYLING --- */
-.glass-modal {
-  background: rgba(var(--v-theme-surface), 0.98) !important;
-  backdrop-filter: blur(10px);
-}
-
-.modal-header {
-  background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%);
-}
-
-.header-icon-box {
-  background: rgba(255, 255, 255, 0.2);
-  padding: 8px;
-  border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.3);
-}
-
-.bg-modal-content {
-  background-color: #f8fafc;
-}
-
-.theme-dark .bg-modal-content {
-  background-color: #0f172a;
-}
-
-.video-wrapper {
-  position: relative;
-  border-radius: 16px;
-  overflow: hidden;
-  background: #000;
-  border: 4px solid #fff;
-}
-
-.theme-dark .video-wrapper {
-  border-color: #334155;
-}
-
-.main-video-player {
-  width: 100%;
-  aspect-ratio: 16/9;
-  display: block;
-  object-fit: contain;
-}
-
-.info-side-card {
-  background: white !important;
-  border: 1px solid #e2e8f0 !important;
-}
-
-.theme-dark .info-side-card {
-  background: #1e293b !important;
-  border-color: #334155 !important;
-}
-
-.metadata-grid {
-  display: grid;
-  gap: 16px;
-}
-
-.meta-label {
-  font-size: 0.7rem;
-  text-transform: uppercase;
-  font-weight: 700;
-  color: #64748b;
-}
-
-.meta-value {
-  font-size: 0.9rem;
-  font-weight: 600;
-}
-
-.detail-sheet {
-  background: #f1f5f9;
-  padding: 12px 16px;
-  border-radius: 12px;
+.insight-hub-wrapper {
+  padding: 0;
+  height: 100%; /* Tambahkan ini */
   display: flex;
   flex-direction: column;
 }
 
-.theme-dark .detail-sheet {
-  background: #1e293b;
+.glass-panel {
+  padding: 32px;
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
 }
 
-.detail-sheet.ambassador {
-  flex-direction: row;
-  align-items: center;
-  border-left: 4px solid #f59e0b;
+.category-label {
+  font-size: 13px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
 }
 
-/* Animations */
-.shine-sweep {
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 50%;
-  height: 100%;
-  background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.2), transparent);
-  transform: skewX(-20deg);
-  animation: shine 6s infinite;
+.stat-value {
+  font-size: 1.6rem;
+  font-weight: 800;
 }
 
-@keyframes shine {
-  0% {
-    left: -100%;
-  }
-
-  20% {
-    left: 200%;
-  }
-
-  100% {
-    left: 200%;
-  }
+.stat-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
 }
 
+.stat-separator {
+  width: 1px;
+  height: 24px;
+  background: rgba(0, 0, 0, 0.1);
+}
 
-.item-card-3d {
-  width: 280px;
-  /* Gue lebarin dikit biar video kelihatan jelas */
-  height: 140px;
+.border {
+  border: 1px solid rgba(0, 0, 0, 0.08) !important;
+}
+
+.bento-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  margin-top: 40px;  
+  flex-grow: 1;
+  margin-bottom: 20px;
+  align-items: stretch;
+}
+
+.brand-card {
+  height: 100%; /* Ubah dari 200px ke 100% */
+  min-height: 200px; /* Gunakan min-height agar tidak terlalu gepeng di layar kecil */
+  color: white !important;
   cursor: pointer;
-  position: relative;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  background: linear-gradient(135deg, var(--bg-top) 0%, var(--bg-bot) 100%) !important;
-  border: 1px solid rgba(255, 255, 255, 0.2) !important;
-  box-shadow: 0 10px 20px -5px var(--shadow-soft);
+  transition: transform 0.3s ease;
 }
 
-.item-card-3d:hover {
-  transform: translateY(-5px) scale(1.02);
-  box-shadow: 0 15px 30px -5px var(--shadow-soft);
+.brand-card:hover {
+  transform: translateY(-5px);
 }
 
-/* Container Video di Sebelah Kiri */
-.video-preview-container {
+.card-media-bg {
   position: absolute;
   top: 0;
   left: 0;
-  width: 60%;
-  /* Ambil 60% lebar kartu */
+  width: 100%;
   height: 100%;
-  overflow: hidden;
+}
+
+.card-overlay-content {
+  position: relative;
   z-index: 1;
-}
-
-.card-video-bg {
   width: 100%;
   height: 100%;
-  object-fit: cover;
-  opacity: 0.8;
-  /* Biar tetep kelihatan blend sama warna */
-}
-
-/* MAGIC GRADIENT: Ini yang bikin video nge-fade ke warna solid */
-.video-gradient-overlay {
-  position: absolute;
-  top: 0;
-  right: 0;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(to right,
-      rgba(0, 0, 0, 0) 0%,
-      rgba(0, 0, 0, 0.1) 40%,
-      var(--bg-top) 95%
-      /* Menutup video di sisi kanan dengan warna tema */
-    );
-}
-
-.avatar-fallback {
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.2);
-}
-
-.text-content {
-  width: 100%;
-  padding-left: 55% !important;
-  /* Dorong teks ke area solid (kanan) */
-  z-index: 2;
-}
-
-/* Play button kecil di pojok */
-.play-indicator {
-  position: absolute;
-  bottom: 12px;
-  right: 12px;
-  background: rgba(255, 255, 255, 0.2);
-  backdrop-filter: blur(4px);
-  border-radius: 50%;
-  width: 32px;
-  height: 32px;
   display: flex;
-  align-items: center;
+  flex-direction: column;
   justify-content: center;
-  z-index: 3;
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  padding-left: 35%;
 }
 
-/* Re-define shadow colors agar lebih punchy */
-.variant-blue {
-  --bg-top: #2563EB;
-  --bg-bot: #1E4ED8;
-  --shadow-soft: rgba(37, 99, 235, 0.5);
+.text-container {
+  width: 100%;
+  padding: 70px;
 }
 
-.variant-purple {
-  --bg-top: #7C3AED;
-  --bg-bot: #6D28D9;
-  --shadow-soft: rgba(124, 58, 237, 0.5);
+.text-container h3 {
+  font-size:  1.75rem !important; 
+  line-height: 1.2;
+  letter-spacing: 0.5px;
+  margin-bottom: 4px; 
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: block;
 }
 
-.variant-pink {
-  --bg-top: #DB2777;
-  --bg-bot: #BE185D;
-  --shadow-soft: rgba(219, 39, 119, 0.5);
+.play-btn {
+  position: absolute;
+  bottom: 16px;
+  right: 16px;
+  background: rgba(255, 255, 255, 0.2) !important;
+  backdrop-filter: blur(4px);
+  border: 1px solid rgba(255, 255, 255, 0.4) !important;
 }
 
-.variant-orange {
-  --bg-top: #D97706;
-  --bg-bot: #B45309;
-  --shadow-soft: rgba(217, 119, 6, 0.5);
+.gradient-type-0 .card-overlay-content {
+  background: linear-gradient(90deg, transparent 0%, #1565D8 75%, #1565D8 100%);
 }
 
-.variant-teal {
-  --bg-top: #0D9488;
-  --bg-bot: #0F766E;
-  --shadow-soft: rgba(13, 148, 136, 0.5);
+.gradient-type-1 .card-overlay-content {
+  background: linear-gradient(90deg, transparent 0%, #7B2CBF 75%, #7B2CBF 100%);
+}
+
+.gradient-type-2 .card-overlay-content {
+  background: linear-gradient(90deg, transparent 0%, #C9184A 75%, #C9184A 100%);
+}
+
+.modal-layout-split {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr;
+  min-height: 600px;
+}
+
+@media (max-width: 960px) {
+
+  .bento-grid,
+  .modal-layout-split {
+    grid-template-columns: 1fr;
+  }
+
+  .glass-panel {
+    padding: 40px;
+  }
+
+  .card-overlay-content {
+    padding-left: 40%;
+  }
 }
 </style>

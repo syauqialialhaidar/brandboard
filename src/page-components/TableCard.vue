@@ -1,5 +1,5 @@
 <template>
-  <v-card class="pa-0 rounded-lg overflow-hidden" color="surface">
+  <v-card class="pa-0 rounded-lg overflow-hidden d-flex flex-column fill-height" color="surface">
     <div class="d-flex flex-wrap align-center pa-4">
       <v-card-title class="text-subtitle-1 font-weight-bold pa-0">
         {{ title }}
