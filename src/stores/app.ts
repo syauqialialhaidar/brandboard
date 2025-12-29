@@ -17,9 +17,9 @@ export interface MasterItem {
 
 export const useAppStore = defineStore('app', () => {
   const navItems = ref<NavItem[]>([
-    { title: 'General Analysis', icon: 'mdi-view-dashboard-outline', to: '/general-analysis' },
-    { title: 'Internal Analysis', icon: 'mdi-chess-king', to: '/internal-analysis' },
-    { title: 'External Analysis', icon: 'mdi-chess-queen', to: '/external-analysis' },
+    { title: 'General Analysis', icon: 'mdi mdi-chart-arc', to: '/general-analysis' },
+    { title: 'Internal Analysis', icon: 'mdi mdi-office-building', to: '/internal-analysis' },
+    { title: 'External Analysis', icon: 'mdi mdi-web', to: '/external-analysis' },
     { title: 'Channel Analysis', icon: 'mdi-access-point', to: '/channel-analysis' },
   ])
 

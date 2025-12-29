@@ -29,11 +29,7 @@
                 <v-img v-else :src="item.logo" class="brand-media" cover />
               </div>
 
-              <div class="action-row">
-                <v-btn variant="flat" class="view-btn" @click="viewDetails(item)">
-                  View Details
-                </v-btn>
-              </div>
+              
             </div>
           </v-card>
         </swiper-slide>
@@ -63,29 +59,21 @@ const modules = [EffectCoverflow, Navigation];
 const videoRefs = ref<any[]>([]);
 
 // 1. Logic Mengatur Urutan: Top 2, Top 1, Top 3
+// 1. Logic Mengatur Urutan: Normal (1, 2, 3, 4, 5)
 const displayItems = computed(() => {
-  if (!props.items || props.items.length < 3) return props.items;
+  if (!props.items || props.items.length < 1) return [];
 
-  // Beri tanda rank asli sebelum ditukar posisinya
-  const mapped = props.items.map((item, index) => ({
+  return props.items.map((item, index) => ({
     ...item,
     originalRank: index + 1
   }));
-
-  const top1 = mapped[0];
-  const top2 = mapped[1];
-  const top3 = mapped[2];
-  const others = mapped.slice(3);
-
-  // Return dengan urutan 2 - 1 - 3
-  return [top2, top1, top3, ...others];
 });
 
 const onSwiperInit = (swiper: any) => {
-  // 2. Mulai langsung di index 1 (yaitu Top 1 yang sudah kita pindah ke tengah)
+  // Ubah slideTo ke 0 agar mulai dari Rank 1
   setTimeout(() => {
-    swiper.slideTo(1, 0);
-    controlVideo(1);
+    swiper.slideTo(0, 0); 
+    controlVideo(0);
   }, 100);
 };
 
@@ -117,7 +105,7 @@ const viewDetails = (item: any) => {
   padding: 20px 0 !important;
   overflow: visible !important;
   position: relative;
-  max-width: 350px;
+  max-width: 360px;
   margin: 0 auto;
 }
 
@@ -158,6 +146,10 @@ const viewDetails = (item: any) => {
 .rank-3 {
   background: linear-gradient(145deg, #f8c3a9 0%, #ffede5 100%) !important;
   box-shadow: 0 10px 25px rgba(205, 127, 50, 0.1) !important;
+}
+.rank-4, .rank-5 {
+  background: linear-gradient(145deg, #ffffff 0%, #e8edf3 100%) !important;
+  border: 1px solid rgba(0, 0, 0, 0.05) !important;
 }
 
 /* Badge Top Rank */

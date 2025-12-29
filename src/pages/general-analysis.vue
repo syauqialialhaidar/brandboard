@@ -1,42 +1,24 @@
 <template>
   <div>
     <v-row class="">
-      <v-col cols="12" md="7"> <v-sheet
-          class="custom-banner h-100 pa-10 d-flex align-center overflow-hidden position-relative rounded-lg"
-          elevation="1">
-          <div class="circle-deco deco-1"></div>
-          <div class="circle-deco deco-2"></div>
-
+      <v-col cols="12" md="4">
+        <v-sheet class="d-flex align-center justify-center overflow-hidden position-relative rounded-lg" elevation="0"
+          color="transparent">
           <v-row align="center" class="position-relative" style="z-index: 2;">
-            <v-col cols="12" sm="6" class="white--text">
-              <h1 class="text-h3 font-weight-black mb-3 line-height-tight font-poppins"
-                style="font-family: 'Poppins', sans-serif !important;">
-                BRANDBOARD <br /><span class="text-gradient">TV ADS</span>
-              </h1>
-              <p class="text-body-1 mb-6 opacity-80 font-weight-light font-poppins"
-                style="font-family: 'Poppins', sans-serif !important;">
-                Analyze your performance and dominate the market with real-time TVC data tracking.
-              </p>
-            </v-col>
-
-            <v-col cols="12" sm="6" class="d-flex justify-end">
-              <v-img src="@/assets/images/tvc.png" max-width="450" width="100%" contain alt="TVC Illustration"
-                class="floating-img mt-n4"></v-img>
+            <v-col cols="12" class="d-flex justify-center">
+              <v-img src="@/assets/images/tvc.png" max-width="480" width="100%" contain alt="TVC Illustration"
+                class="floating-img mt-16"></v-img>
             </v-col>
           </v-row>
         </v-sheet>
       </v-col>
-
-      <v-col cols="12" md="5">
-
-        <div class="d-flex align-center justify-center mt-6">
+      <v-col cols="12" md="8"> <div class="d-flex align-center justify-center mt-6">
           <span class="text-h6 font-weight-bold text-high-emphasis">
-            Top 3 Competitor Company
-          </span>
+            Top 5 Competitor Company </span>
         </div>
 
         <div class="flex-grow-1 d-flex align-center justify-center">
-          <BrandCarousel :items="top3CorporateAds" />
+          <BrandCarousel :items="top5CorporateAds" />
         </div>
       </v-col></v-row>
 
@@ -46,9 +28,14 @@
       <v-col cols="12" md="4">
         <v-row dense>
           <v-col v-for="card in metricCards" :key="card.title" cols="6">
-            <MetricCard :title="card.title" :value="card.value" :icon="card.icon" :color="card.color"
-              :trend-data="card.trendData" class="h-100" />
-          </v-col>
+  <MetricCard 
+    :title="card.title" 
+    :value="card.value" 
+    :icon="card.icon"
+    :trend-data="card.trendData"
+    class="h-100" 
+  />
+</v-col>
         </v-row>
       </v-col>
 
@@ -57,6 +44,20 @@
           :is-loading-more="isFetchingMore" :total-value="corporateTotal" :show-modal="showBrandModal"
           :selected-item="selectedBrandData" :active-video="activeVideo" :is-loading-detail="isLoadingVideos"
           @close-modal="showBrandModal = false" @next-page="handleLoadMore" @item-click="handleBrandClick" />
+      </v-col>
+    </v-row>
+
+    <div class="text-h6 font-weight-bold my-6 ga-8">General Corporate Distributions</div>
+
+    <v-row class="mt-6 mb-6 d-flex">
+      <v-col cols="12" md="4">
+        <PieChartCard title="General Corporation Pie" :data="corporationPieData" :has-legend="true"
+          :is-loading="isLoading" />
+      </v-col>
+      <v-col cols="12" md="8">
+        <LineChartCard title="Corporation Trends" :labels="lineChartLabels" :data="lineChartDatasets"
+          :show-toggle="true" :toggle="lineChartToggle" @toggle-change="lineChartToggle = $event"
+          :is-loading="isLoading" />
       </v-col>
     </v-row>
 
@@ -84,7 +85,7 @@
     </v-row>
 
 
-    <div class="text-h6 font-weight-bold my-6 ga-8">General Distributions and Trends</div>
+    <div class="text-h6 font-weight-bold my-6 ga-8">Corporate Trends</div>
 
     <v-row class="mt-6">
       <v-col cols="12" md="6">
@@ -106,7 +107,7 @@
             <v-card-title class="text-subtitle-1 font-weight-bold pa-0">
               Brand Detail:
               <span class="text-primary">
-                {{ selectedGroupForDetail === 'ALL_DATA' ? 'All Corporations' : (selectedGroupForDetail || 'Select a Corporation') }}
+                {{ selectedGroupForDetail === 'ALL_DATA' ? 'All Corporations' : (selectedGroupForDetail || 'Select aCorporation') }}
               </span>
             </v-card-title>
             <v-spacer></v-spacer>
@@ -132,17 +133,7 @@
       </v-col>
     </v-row>
 
-    <v-row class="mt-6 mb-6 d-flex">
-      <v-col cols="12" md="4">
-        <PieChartCard title="General Corporation Pie" :data="corporationPieData" :has-legend="true"
-          :is-loading="isLoading" />
-      </v-col>
-      <v-col cols="12" md="8">
-        <LineChartCard title="Corporation Trends" :labels="lineChartLabels" :data="lineChartDatasets"
-          :show-toggle="true" :toggle="lineChartToggle" @toggle-change="lineChartToggle = $event"
-          :is-loading="isLoading" />
-      </v-col>
-    </v-row>
+
 
 
 
@@ -238,7 +229,7 @@ const alwaysShowInternal = ref(false);
 //------------------corosel---------------
 // Tambahkan state untuk kontrol pagination
 const currentPageInternal = ref(0);
-const pageSize = 3;
+const pageSize = 5;
 const isFetchingMore = ref(false);
 
 async function handleLoadMore() {
@@ -689,12 +680,11 @@ const barChartData = computed(() => {
   return { data, segments };
 });
 
-const top3CorporateHighlights = computed(() => {
-  return corporateHighlights.value.slice(0, 3);
-});
 
-const top3CorporateAds = computed(() => {
-  return corporateHighlights.value.slice(0, 3);
+
+const top5CorporateAds = computed(() => {
+  // Ubah slice dari (0, 3) menjadi (0, 5)
+  return corporateHighlights.value.slice(0, 5); 
 });
 const adsTrendData = ref<number[]>([]);
 const groupsTrendData = ref<number[]>([]);
@@ -796,12 +786,12 @@ async function fetchGlobalData() {
 
     // Logika Top 3 Competitor
     if (chartTopGroupData && Array.isArray(chartTopGroupData)) {
-      const top3Groups = [...chartTopGroupData]
+      const top5Groups = [...chartTopGroupData]
         .sort((a: any, b: any) => (b.total || 0) - (a.total || 0))
-        .slice(0, 3);
+        .slice(0, 5);
 
       corporateHighlights.value = await Promise.all(
-        top3Groups.map(async (group: any) => {
+        top5Groups.map(async (group: any) => {
           let previewVideo = '';
           try {
             const videoRes = await fetchData('list', { group: [group.name] });
@@ -932,16 +922,6 @@ onMounted(async () => {
   transform: translateY(-4px);
   box-shadow: 0 4px 25px 0 rgba(0, 0, 0, 0.15) !important;
   z-index: 1;
-}
-
-
-/* Banner Styling */
-.custom-banner {
-  background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%) !important;
-  border-radius: 16px !important;
-  color: white !important;
-  /* Tetap putih karena backgroundnya gelap */
-
 }
 
 .text-gradient {
