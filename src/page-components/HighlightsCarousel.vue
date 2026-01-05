@@ -1,5 +1,9 @@
 <template>
-  <v-card class="insight-hub-wrapper pa-0 rounded-lg overflow-hidden fill-height" elevation="1" color="surface">
+  <v-card 
+  class="insight-hub-wrapper pa-0 border-header-style overflow-hidden fill-height" 
+  elevation="0" 
+  color="surface"
+>
     <div class="glass-canvas">
 
       <div class="glass-panel">
@@ -12,10 +16,10 @@
             </div>
 
             <div class="stats-and-nav d-flex align-center flex-wrap ga-4">
-              <v-sheet class="stats-badge-group elevation-1 border rounded-xl d-flex align-center px-6" height="64">
+              <v-sheet class="stats-badge-group elevation-header border rounded-xl d-flex align-center px-6" height="64">
                 <div class="stat-badge d-flex align-center">
                   <span class="stat-value text-high-emphasis">{{ totalItemsCount }}</span>
-                  <span class="stat-label text-medium-emphasis ml-2">Brands</span>
+                  <span class="text-overline font-weight-bold ml-2 opacity-70">{{ itemLabel }}</span>
                 </div>
                 <div class="stat-separator mx-5"></div>
                 <div class="stat-badge d-flex align-center">
@@ -24,7 +28,16 @@
                 </div>
               </v-sheet>
 
-              <v-sheet class="pagination-suite elevation-1 border rounded-xl d-flex align-center px-4" height="64">
+              <v-sheet class="pagination-suite elevation-header border rounded-xl d-flex align-center px-4" height="64">
+                <div class="date-info-container d-flex align-center mr-4 pr-4 border-right">
+                  <v-icon size="18" color="primary" class="mr-2">mdi-calendar-clock</v-icon>
+                  <div class="d-flex flex-column text-left">
+                    <span class="text-caption font-weight-bold text-high-emphasis lh-1">
+                      {{ dynamicDateRange }}
+                    </span>
+                  </div>
+                </div>
+
                 <v-btn icon variant="tonal" class="nav-arrow-btn" size="small" color="primary"
                   :disabled="currentPage === 0" @click="currentPage--">
                   <v-icon size="18">mdi-chevron-left</v-icon>
@@ -129,6 +142,11 @@ const props = defineProps({
   items: { type: Array as any, default: () => [] },
   totalItemsCount: { type: Number, default: 0 },
   isLoadingMore: { type: Boolean, default: false },
+  itemLabel: { type: String, default: 'Brands' },
+
+  // TAMBAHKAN DUA PROPS INI UNTUK FILTER TANGGAL
+  startDate: { type: String, default: '' },
+  endDate: { type: String, default: '' },
 
   // Data Modal (Dikirim dari Page)
   showModal: { type: Boolean, default: false },
@@ -142,6 +160,27 @@ const emit = defineEmits(['next-page', 'item-click', 'close-modal']);
 
 const itemsPerPage = 3;
 const currentPage = ref(0);
+
+const formatDate = (dateStr: string) => {
+  if (!dateStr) return '';
+  const d = new Date(dateStr);
+  return d.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
+};
+
+// COMPUTE TANGGAL OTOMATIS DARI DATA
+const dynamicDateRange = computed(() => {
+  // Jika props tanggal dari parent tersedia, gunakan itu
+  if (props.startDate && props.endDate) {
+    const start = formatDate(props.startDate);
+    const end = formatDate(props.endDate);
+
+    // Jika tanggal sama (misal 1 hari), tampilkan satu saja
+    return start === end ? start : `${start} - ${end}`;
+  }
+
+  // Fallback jika tidak ada filter (Opsional)
+  return 'All Time';
+});
 
 
 const getCardClass = (index: number) => {
@@ -181,7 +220,8 @@ const handleItemClick = (item: any) => {
 <style scoped>
 .insight-hub-wrapper {
   padding: 0;
-  height: 100%; /* Tambahkan ini */
+  height: 100%;
+  /* Tambahkan ini */
   display: flex;
   flex-direction: column;
 }
@@ -224,15 +264,44 @@ const handleItemClick = (item: any) => {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 20px;
-  margin-top: 40px;  
+  margin-top: 40px;
   flex-grow: 1;
   margin-bottom: 20px;
   align-items: stretch;
 }
 
+@media (max-width: 1264px) {
+  .bento-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Mobile (Layar di bawah 768px): 1 Kolom */
+@media (max-width: 768px) {
+  .bento-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .glass-panel {
+    padding: 16px;
+    /* Perkecil padding di mobile agar tidak sempit */
+  }
+
+  /* Penyesuaian teks di mobile agar tidak terlalu besar */
+  .text-container {
+    padding: 30px;
+  }
+
+  .text-container h3 {
+    font-size: 1.25rem !important;
+  }
+}
+
 .brand-card {
-  height: 100%; /* Ubah dari 200px ke 100% */
-  min-height: 200px; /* Gunakan min-height agar tidak terlalu gepeng di layar kecil */
+  height: 100%;
+  /* Ubah dari 200px ke 100% */
+  min-height: 200px;
+  /* Gunakan min-height agar tidak terlalu gepeng di layar kecil */
   color: white !important;
   cursor: pointer;
   transition: transform 0.3s ease;
@@ -267,10 +336,10 @@ const handleItemClick = (item: any) => {
 }
 
 .text-container h3 {
-  font-size:  1.75rem !important; 
+  font-size: 1.75rem !important;
   line-height: 1.2;
   letter-spacing: 0.5px;
-  margin-bottom: 4px; 
+  margin-bottom: 4px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -318,5 +387,69 @@ const handleItemClick = (item: any) => {
   .card-overlay-content {
     padding-left: 40%;
   }
+}
+
+/* Garis pembatas vertikal antara tanggal dan tombol */
+.border-right {
+  border-right: 1px solid rgba(0, 0, 0, 0.1) !important;
+  height: 35px;
+}
+
+.lh-1 {
+  line-height: 1 !important;
+}
+
+.date-info-container {
+  min-width: max-content;
+}
+
+/* Sembunyikan label periode di layar sangat kecil agar tidak sumpek */
+@media (max-width: 600px) {
+  .date-info-container {
+    margin-right: 8px !important;
+    padding-right: 8px !important;
+  }
+
+  .date-info-container .text-overline {
+    display: none;
+  }
+}
+
+
+/* Custom class untuk menyamakan dengan Header atas */
+.border-header-style {
+  border-radius: 20px !important; 
+  border: 1px solid rgba(var(--v-border-color), 0.05) !important;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05) !important;
+}
+
+/* Shadow khusus untuk sheet/kotakan kecil di dalam agar konsisten */
+.elevation-header {
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03) !important;
+  border: 1px solid rgba(var(--v-border-color), 0.05) !important;
+}
+
+/* Memastikan wrapper mengikuti radius */
+.insight-hub-wrapper {
+  padding: 0;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden; /* Penting agar isi tidak keluar dari radius */
+}
+
+/* Update pada brand-card agar serasi (Opsional: Radius 20px) */
+.brand-card {
+  border-radius: 20px !important;
+  height: 100%;
+  min-height: 200px;
+  color: white !important;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.brand-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1) !important;
 }
 </style>

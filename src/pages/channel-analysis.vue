@@ -1,4 +1,9 @@
 <template>
+  <v-container fluid class="pa-0">
+  <PageTitle
+      title="Channel Analysis"
+      class="mb-6"
+    />
   <div>
     <v-tabs
       v-model="currentTab"
@@ -28,6 +33,7 @@
       </v-window-item>
     </v-window>
   </div>
+  </v-container>
 </template>
 
 <script setup lang="ts">

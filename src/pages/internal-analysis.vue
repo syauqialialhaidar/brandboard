@@ -1,136 +1,120 @@
 <template>
-  <div>
+  <v-container fluid class="pa-0">
+    <PageTitle title="Internal Analysis" :show-channel-filter="true" class="mb-6" />
+    <div>
 
-    <h2 class="text-h6 font-weight-bold mb-4">General Internal</h2>
+      <h2 class="text-h6 font-weight-bold mb-4">General Internal</h2>
 
-    <v-dialog v-model="showModal" max-width="800">
-  <v-card class="rounded-xl pa-4">
-    <v-card-title class="d-flex justify-space-between align-center">
-      <span>Detail Varian: {{ selectedItem?.name }}</span>
-      <v-btn icon="mdi-close" variant="text" @click="showModal = false"></v-btn>
-    </v-card-title>
-    <v-card-text>
-  <v-row>
-    <v-col cols="12" md="7" class="bg-black d-flex align-center justify-center rounded-lg" style="min-height: 300px;">
-  <div v-if="isVideoLoading">
-    <v-progress-circular indeterminate color="white"></v-progress-circular>
-  </div>
-  
-  <div v-else-if="videoList.length > 0" class="w-100 h-100">
-    <video 
-      :key="videoList[0].video_link" 
-      controls 
-      width="100%" 
-      :src="videoList[0].video_link" 
-      class="rounded-lg"
-      autoplay
-    >
-      Your browser does not support the video tag.
-    </video>
-  </div>
-  
-  <div v-else class="text-white d-flex flex-column align-center">
-    <v-icon size="48" color="grey">mdi-video-off</v-icon>
-    <p>Video tidak tersedia untuk varian ini</p>
-  </div>
-</v-col>
+      <v-dialog v-model="showModal" max-width="800">
+        <v-card class="rounded-xl pa-4">
+          <v-card-title class="d-flex justify-space-between align-center">
+            <span>Detail Varian: {{ selectedItem?.name }}</span>
+            <v-btn icon="mdi-close" variant="text" @click="showModal = false"></v-btn>
+          </v-card-title>
+          <v-card-text>
+            <v-row>
+              <v-col cols="12" md="7" class="bg-black d-flex align-center justify-center rounded-lg"
+                style="min-height: 300px;">
+                <div v-if="isVideoLoading">
+                  <v-progress-circular indeterminate color="white"></v-progress-circular>
+                </div>
 
-    <v-col cols="12" md="5">
-       <h2 class="text-h5 font-weight-bold">{{ selectedItem?.name }}</h2>
-       </v-col>
-  </v-row>
-</v-card-text>
-  </v-card>
-</v-dialog>
+                <div v-else-if="videoList.length > 0" class="w-100 h-100">
+                  <video :key="videoList[0].video_link" controls width="100%" :src="videoList[0].video_link"
+                    class="rounded-lg" autoplay>
+                    Your browser does not support the video tag.
+                  </video>
+                </div>
 
-    <v-row>
-      <v-col v-for="card in internalMetricCards" :key="card.title" cols="12" sm="6" md="3">
-        <MetricCard :title="card.title" :value="card.value" :icon="card.icon" :color="card.color"
-          :trend-data="card.trendData" />
-      </v-col>
-    </v-row>
+                <div v-else class="text-white d-flex flex-column align-center">
+                  <v-icon size="48" color="grey">mdi-video-off</v-icon>
+                  <p>Video tidak tersedia untuk varian ini</p>
+                </div>
+              </v-col>
 
-    <v-row class="mt-2 d-flex">
-      <v-col cols="12" md="4">
-        <PieChartCard title="Internal Brand Distribution Pie" :data="internalPieData" :has-legend="true"
-          :is-loading="isGeneralLoading" />
-      </v-col>
-      <v-col cols="12" md="8">
-        <LineChartCard title="Internal Brand Trends" :labels="brandTrendLabels" :data="internalLineData"
-          :is-loading="isGeneralLoading" />
-      </v-col>
-    </v-row>
+              <v-col cols="12" md="5">
+                <h2 class="text-h5 font-weight-bold">{{ selectedItem?.name }}</h2>
+              </v-col>
+            </v-row>
+          </v-card-text>
+        </v-card>
+      </v-dialog>
 
-    <v-row class="mt-2 d-flex">
-      <v-col cols="12" md="4">
-        <TableCard title="Internal Brand Ranking" :headers="['Brand']" :rows="internalBrandRanking" :per-page="5" />
-      </v-col>
-      <v-col cols="12" md="8">
-        <BarChartCard title="Unilever Brand Variants Distribution" :data="variantDistributionData"
-          :segment-labels="variantDistributionSegments" :is-loading="isGeneralLoading" />
-      </v-col>
-    </v-row>
+      <v-row>
+        <v-col v-for="(card, i) in internalMetricCards" :key="card.title" cols="12" sm="6" md="3">
+          <MetricCard :title="card.title" :value="card.value" :icon="card.icon" :index="i" :trend-data="card.trendData"
+            :labels="card.labels" />
+        </v-col>
+      </v-row>
 
-    <div class="d-flex flex-wrap align-center my-6 ga-4">
-  <div class="text-h6 font-weight-bold">Internal Brand and Variants</div>
-  <v-spacer></v-spacer>
-  <v-sheet width="250" color="transparent">
-    <v-select v-model="selectedInternalBrand" density="compact" label="Select Brand" variant="outlined" hide-details
-      :items="masterBrandsInternal"></v-select>
-  </v-sheet>
-</div>
+      <v-row class="mt-2 d-flex">
+        <v-col cols="12" md="4">
+          <PieChartCard title="Internal Brand Distribution Pie" :data="internalPieData" :has-legend="true"
+            :is-loading="isGeneralLoading" />
+        </v-col>
+        <v-col cols="12" md="8">
+          <LineChartCard title="Internal Brand Trends" :labels="brandTrendLabels" :data="internalLineData"
+            :is-loading="isGeneralLoading" />
+        </v-col>
+      </v-row>
 
-<v-row class="mb-6" align="center">
-  <v-col cols="12" md="3">
-    <v-row>
-      <v-col v-for="card in variantMetricCards" :key="card.title" cols="12">
-        <MetricCard 
-          :title="card.title" 
-          :value="card.value" 
-          :icon="card.icon" 
-          :color="card.color" 
-          :trend-data="card.trendData" 
-        />
-      </v-col>
-    </v-row>
-  </v-col>
+      <v-row class="mt-2 d-flex">
+        <v-col cols="12" md="4">
+          <TableCard title="Internal Brand Ranking" :headers="['Brand']" :rows="internalBrandRanking" :per-page="5" />
+        </v-col>
+        <v-col cols="12" md="8">
+          <BarChartCard title="Unilever Brand Variants Distribution" :data="variantDistributionData"
+            :segment-labels="variantDistributionSegments" :is-loading="isGeneralLoading" />
+        </v-col>
+      </v-row>
 
-  <v-col cols="12" md="9">
-    <HighlightsCarousel 
-  :show-total="true" 
-  total-icon="mdi-domain" 
-  total-icon-color="primary"
-  :total-title="carouselTotalTitle" 
-  :total-value="carouselTotalValue" 
-  :items="variantHighlights" 
-  
-  :show-modal="showModal"
-  :selected-item="selectedItem"
-  :active-video="videoList[0]" 
-  :is-loading-detail="isVideoLoading"
-  @close-modal="showModal = false"
-  @item-click="handleItemClick"
-/>
-  </v-col>
-</v-row>
+      <div class="d-flex flex-wrap align-center my-6 ga-4">
+        <div class="text-h6 font-weight-bold">Internal Brand and Variants</div>
+        <v-spacer></v-spacer>
+        <v-sheet width="250" color="transparent">
+          <v-select v-model="selectedInternalBrand" density="compact" label="Select Brand" variant="outlined"
+            hide-details :items="masterBrandsInternal"></v-select>
+        </v-sheet>
+      </div>
 
-<v-row class="mb-6 d-flex" align="stretch">
-  <v-col cols="12" md="4">
-    <PieChartCard title="All Brand's Variants" :data="variantPieData" :has-legend="true"
-      :is-loading="isVariantLoading" />
-  </v-col>
-  <v-col cols="12" md="8"> <TableCard title="Variant's Ranking" :headers="['Brand Variant']" :rows="variantRankingData" :per-page="5"
-      class="h-100" />
-  </v-col>
-</v-row>
+      <v-row class="mb-6" align="center">
+        <v-col cols="12" md="3">
+          <v-row>
+            <v-col v-for="card in variantMetricCards" :key="card.title" cols="12">
+              <MetricCard :title="card.title" :value="card.value" :icon="card.icon" :color="card.color"
+                :trend-data="card.trendData" />
+            </v-col>
+          </v-row>
+        </v-col>
 
-    <v-row class="mb-6">
-      <v-col cols="12">
-        <LineChartCard title="Internal Brand Variant Trends" :labels="variantTrendLabels" :data="variantTrendData"
-          :is-loading="isVariantLoading" />
-      </v-col>
-    </v-row>
-  </div>
+        <v-col cols="12" md="9">
+          <HighlightsCarousel total-title="Variants Mentions" item-label="Variants" :show-total="true"
+            total-icon="mdi-domain" total-icon-color="primary" :total-value="carouselTotalValue"
+            :items="variantHighlights" :show-modal="showModal" :selected-item="selectedItem"
+            :active-video="videoList[0]" :is-loading-detail="isVideoLoading" @close-modal="showModal = false"
+            @item-click="handleItemClick" />
+        </v-col>
+      </v-row>
+
+      <v-row class="mb-6 d-flex" align="stretch">
+        <v-col cols="12" md="4">
+          <PieChartCard title="All Brand's Variants" :data="variantPieData" :has-legend="true"
+            :is-loading="isVariantLoading" />
+        </v-col>
+        <v-col cols="12" md="8">
+          <TableCard title="Variant's Ranking" :headers="['Brand Variant']" :rows="variantRankingData" :per-page="5"
+            class="h-100" />
+        </v-col>
+      </v-row>
+
+      <v-row class="mb-6">
+        <v-col cols="12">
+          <LineChartCard title="Internal Brand Variant Trends" :labels="variantTrendLabels" :data="variantTrendData"
+            :is-loading="isVariantLoading" />
+        </v-col>
+      </v-row>
+    </div>
+  </v-container>
 </template>
 
 <script setup lang="ts">
@@ -185,8 +169,9 @@ interface MetricCardItem {
   title: string;
   value: string | number;
   icon: string;
-  color: string;
+  color?: string;
   trendData: number[];
+  labels?: string[];
 }
 
 const unileverAdsTrend = ref<number[]>([]);
@@ -207,10 +192,11 @@ const isGeneralLoading = ref(true);
 const isVariantLoading = ref(true);
 
 const internalMetricCards = ref<MetricCardItem[]>([
-  { title: 'Total of Unilever Ads', value: '...', icon: 'mdi-chart-line', color: 'primary', trendData: [] },
-  { title: 'Number of Brands', value: '...', icon: 'mdi-tag', color: 'primary', trendData: [] },
-  { title: 'Number of Brand Variants', value: '...', icon: 'mdi-tag-multiple', color: 'primary', trendData: [] },
-  { title: 'Total Category', value: '...', icon: 'mdi-shape-outline', color: 'primary', trendData: [] },
+  // Hapus properti color, atau set null/undefined
+  { title: 'Total of Unilever Ads', value: '...', icon: 'mdi-chart-line', trendData: [] },
+  { title: 'Number of Brands', value: '...', icon: 'mdi-tag', trendData: [] },
+  { title: 'Number of Brand Variants', value: '...', icon: 'mdi-tag-multiple', trendData: [] },
+  { title: 'Total Category', value: '...', icon: 'mdi-shape-outline', trendData: [] },
 ]);
 
 const rawInternalTopBrand = ref<TableRow[]>([]);
@@ -484,29 +470,61 @@ async function fetchGeneralData() {
       fetchData('stacked/brand/varian', internalFilter),
     ]);
 
+    let processedTrend: number[] = [];
+    let processedLabels: string[] = [];
+
     if (trendBrandData && Array.isArray(trendBrandData)) {
       const dailyMap: Record<string, number> = {};
+
       trendBrandData.forEach((item: any) => {
         const d = item.date;
         if (!dailyMap[d]) dailyMap[d] = 0;
         dailyMap[d] += (Number(item.total) || 0);
       });
 
-      const sortedTrend: number[] = Object.keys(dailyMap)
-        .sort()
-        .map(date => dailyMap[date]) as number[];
+      const sortedDates = Object.keys(dailyMap).sort();
 
-      unileverAdsTrend.value = sortedTrend;
-      brandsTrend.value = sortedTrend.map(v => Math.max(1, Math.round(v / 5)));
-      variantsTrend.value = sortedTrend.map(v => Math.round(v / 2));
-      categoriesTrend.value = sortedTrend.map(v => Math.max(1, Math.round(v / 10)));
+      processedLabels = sortedDates.map(date => moment(date).format('DD MMM'));
+      processedTrend = sortedDates.map(date => dailyMap[date] as number);
+
+      // Simpan trend dasar
+      unileverAdsTrend.value = processedTrend;
+      // Simulasi trend untuk metrik lainnya (opsional, sesuaikan logika bisnis Anda)
+      brandsTrend.value = processedTrend.map(v => Math.max(1, Math.round(v / 5)));
+      variantsTrend.value = processedTrend.map(v => Math.round(v / 2));
+      categoriesTrend.value = processedTrend.map(v => Math.max(1, Math.round(v / 10)));
     }
 
+    // UPDATE VARIABEL GLOBAL (Jangan pakai 'const' atau 'ref' lagi di sini)
     internalMetricCards.value = [
-      { title: 'Total of Unilever Ads', value: totalAds?.total || 0, icon: 'mdi-chart-line', color: 'primary', trendData: unileverAdsTrend.value },
-      { title: 'Number of Brands', value: totalBrands?.total || 0, icon: 'mdi-tag', color: 'primary', trendData: brandsTrend.value },
-      { title: 'Number of Brand Variants', value: totalVariants?.total || 0, icon: 'mdi-tag-multiple', color: 'primary', trendData: variantsTrend.value },
-      { title: 'Total Category', value: totalCategories?.total || 0, icon: 'mdi-shape-outline', color: 'primary', trendData: categoriesTrend.value },
+      {
+        title: 'Total of Unilever Ads',
+        value: totalAds?.total || 0,
+        icon: 'mdi-chart-line',
+        trendData: unileverAdsTrend.value,
+        labels: processedLabels
+      },
+      {
+        title: 'Number of Brands',
+        value: totalBrands?.total || 0,
+        icon: 'mdi-tag',
+        trendData: brandsTrend.value,
+        labels: processedLabels
+      },
+      {
+        title: 'Number of Brand Variants',
+        value: totalVariants?.total || 0,
+        icon: 'mdi-tag-multiple',
+        trendData: variantsTrend.value,
+        labels: processedLabels
+      },
+      {
+        title: 'Total Category',
+        value: totalCategories?.total || 0,
+        icon: 'mdi-shape-outline',
+        trendData: categoriesTrend.value,
+        labels: processedLabels
+      },
     ];
 
     rawInternalTopBrand.value = transformApiResponse(topBrandData);

@@ -9,9 +9,9 @@
       </v-sheet>
     </div>
     <v-row>
-      <v-col v-for="card in metricCards" :key="card.title" cols="12" sm="6" md="3">
-        <MetricCard :title="card.title" :value="card.value" :icon="card.icon" :color="card.color"
-          :trend-data="card.trendData || []" />
+      <v-col v-for="(card, index) in metricCards" :key="card.title" cols="12" sm="6" md="3">
+        <MetricCard :index="index" :title="card.title" :value="card.value" :icon="card.icon" :color="card.color"
+          :trend-data="card.trendData || []" :labels="card.labels || []" />
       </v-col>
     </v-row>
 
@@ -102,8 +102,9 @@ interface MetricCardItem {
   title: string;
   value: string | number;
   icon: string;
-  color: string;
-  trendData: number[]; // Tambahkan ini
+  color?: string;
+  trendData: number[];
+  labels: string[];
 }
 
 // --- Store ---
@@ -121,10 +122,10 @@ const selectedLocalChannel = ref<string | null>(null);
 const barChartToggle = ref('top10');
 
 const metricCards = ref<MetricCardItem[]>([
-  { title: 'Total Ads', value: '...', icon: 'mdi-chart-line', color: 'primary', trendData: [] },
-  { title: 'Total Corporates', value: '...', icon: 'mdi-domain', color: 'primary', trendData: [] },
-  { title: 'Total Brands', value: '...', icon: 'mdi-tag', color: 'primary', trendData: [] },
-  { title: 'Total Brand Variants', value: '...', icon: 'mdi-tag-multiple', color: 'primary', trendData: [] },
+  { title: 'Total Ads', value: '...', icon: 'mdi-chart-line', trendData: [], labels: [] },
+  { title: 'Total Corporates', value: '...', icon: 'mdi-domain', trendData: [], labels: [] },
+  { title: 'Total Brands', value: '...', icon: 'mdi-tag', trendData: [], labels: [] },
+  { title: 'Total Brand Variants', value: '...', icon: 'mdi-tag-multiple', trendData: [], labels: [] },
 ]);
 
 // --- Raw Data Refs ---
@@ -329,7 +330,7 @@ async function fetchAllData() {
       stackedGroupBrand,
       topGroup, topBrand, topVarian,
       topAmbassador,
-      trendDataRaw // Kita tambahkan trend data untuk grafik di kartu
+      trendDataRaw
     ] = await Promise.all([
       fetchData('total/ads', localFilter),
       fetchData('total/group', localFilter),
@@ -340,50 +341,64 @@ async function fetchAllData() {
       fetchData('top/brand', localFilter),
       fetchData('top/varian', localFilter),
       fetchData('top/brand_ambassador', localFilter),
-      fetchData('trend/group', localFilter), // Ambil data trend
+      fetchData('trend/group', localFilter),
     ]);
 
-    // OLAH TREND DATA (Logika yang sama dengan General/External)
+    // OLAH TREND DATA (Berdasarkan Tanggal)
+    // Pastikan tipe data variabel sudah didefinisikan sebagai number[]
     let processedTrend: number[] = [];
+    let processedLabels: string[] = []; // Array untuk tanggal
+
     if (trendDataRaw && Array.isArray(trendDataRaw)) {
       const dailyMap: Record<string, number> = {};
+
       trendDataRaw.forEach((item: any) => {
-        const d = item.date;
+        const d = String(item.date);
         if (!dailyMap[d]) dailyMap[d] = 0;
         dailyMap[d] += (Number(item.total) || 0);
       });
-      processedTrend = Object.keys(dailyMap).sort().map(date => dailyMap[date]) as number[];
+
+      // Ambil tanggal yang sudah urut
+      const sortedDates = Object.keys(dailyMap).sort();
+      
+      processedLabels = sortedDates.map(date => {
+        // Opsional: Format tanggal agar lebih pendek, misal "2024-01-01" jadi "01 Jan"
+        const d = new Date(date);
+        return d.toLocaleDateString('id-ID', { day: '2-digit', month: 'short' });
+      });
+
+      processedTrend = sortedDates.map((date) => dailyMap[date] as number);
     }
 
-    // UPDATE METRIC CARDS
+    // UPDATE METRIC CARDS DENGAN WARNA DINAMIS (color dikosongkan agar pakai index)
     metricCards.value = [
       {
         title: 'Total Ads',
         value: totalAds?.total || 0,
         icon: 'mdi-chart-line',
-        color: 'primary',
-        trendData: processedTrend
+        trendData: processedTrend,
+        labels: processedLabels
       },
       {
         title: 'Total Corporates',
         value: totalGroup?.total || 0,
         icon: 'mdi-domain',
-        color: 'primary',
-        trendData: [...processedTrend].reverse()
+        trendData: [...processedTrend].reverse(), // Variasi visual
+        labels: processedLabels
       },
       {
         title: 'Total Brands',
         value: totalBrand?.total || 0,
         icon: 'mdi-tag',
-        color: 'primary',
-        trendData: processedTrend.map(v => Math.floor(v * 0.7))
+        trendData: processedTrend.map(v => Math.floor(v * 0.8)),
+        labels: processedLabels
       },
       {
         title: 'Total Brand Variants',
         value: totalVarian?.total || 0,
         icon: 'mdi-tag-multiple',
-        color: 'primary',
-        trendData: processedTrend
+        trendData: processedTrend,
+        labels: processedLabels
       },
     ];
 

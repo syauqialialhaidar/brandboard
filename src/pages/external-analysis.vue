@@ -1,74 +1,66 @@
 <template>
-  <div>
-    <div class="d-flex flex-wrap align-center mb-6 ga-4">
-      <div class="text-h6 font-weight-bold">Competitor Analysis</div>
-      <v-spacer></v-spacer>
-      <v-sheet width="300" color="transparent">
-        <v-select v-model="selectedExternalGroup" density="compact" label="Select Competitor Group" variant="outlined"
-          hide-details :items="masterExternalGroups"></v-select>
-      </v-sheet>
+  <v-container fluid class="pa-0">
+    <PageTitle title="External Analysis" :show-channel-filter="true" class="mb-6" />
+    <div>
+      <div class="d-flex flex-wrap align-center mb-6 ga-4">
+        <div class="text-h6 font-weight-bold">Competitor Analysis</div>
+        <v-spacer></v-spacer>
+        <v-sheet width="300" color="transparent">
+          <v-select v-model="selectedExternalGroup" density="compact" label="Select Competitor Group" variant="outlined"
+            hide-details :items="masterExternalGroups"></v-select>
+        </v-sheet>
+      </div>
+
+      <v-row>
+        <v-col v-for="(card, i) in externalMetricCards" :key="card.title" cols="12" sm="6" md="4">
+          <MetricCard :title="card.title" :value="card.value" :icon="card.icon" :index="i" :trend-data="card.trendData"
+            :labels="card.labels" />
+        </v-col>
+      </v-row>
+
+      <v-row class="mt-2">
+        <v-col cols="12" md="4">
+          <PieChartCard :title="externalPieTitle" :data="externalPieData" :has-legend="true" :is-loading="isLoading" />
+        </v-col>
+        <v-col cols="12" md="8">
+          <LineChartCard title="Brand Trends" :labels="brandTrendLabels" :data="externalLineData"
+            :is-loading="isLoading" />
+        </v-col>
+      </v-row>
+
+      <v-row class="mt-2">
+        <v-col cols="12" md="4">
+          <TableCard title="Brand Ranking" :headers="['Brand']" :rows="brandRankingData" :per-page="5" />
+        </v-col>
+        <v-col cols="12" md="8">
+          <BarChartCard :title="externalBarTitle" :data="variantDistributionData"
+            :segment-labels="variantDistributionSegments" :is-loading="isLoading" />
+        </v-col>
+      </v-row>
+
+      <div class="d-flex flex-wrap align-center my-6 ga-4">
+        <div class="text-h6 font-weight-bold">Brand Variations</div>
+      </div>
+
+      <v-row class="mb-6" align="stretch"> <v-col cols="12" md="4">
+          <TableCard title="Brand Variant Data" :headers="['Brand Variant']" :rows="variantRankingData" :per-page="5" />
+        </v-col>
+        <v-col cols="12" md="8">
+          <HighlightsCarousel total-title="Competitor Mentions" item-label="Corporates" class="fill-height"
+            :items="variantHighlights" :show-modal="showModal" :selected-item="selectedItem"
+            :active-video="videoList[0]" :is-loading-detail="isVideoLoading" @close-modal="showModal = false"
+            @item-click="handleItemClick" />
+        </v-col>
+      </v-row>
+
+      <v-row class="mb-6">
+        <v-col cols="12">
+          <LineChartCard title="Brand Variant Trends" :labels="variantTrendLabels" :data="variantTrendData"
+            :is-loading="isLoading" />
+        </v-col>
+      </v-row>
     </div>
-
-    <v-row>
-      <v-col v-for="card in externalMetricCards" :key="card.title" cols="12" sm="6" md="4">
-        <MetricCard :title="card.title" :value="card.value" :icon="card.icon" :color="card.color"
-          :trend-data="card.trendData" />
-      </v-col>
-    </v-row>
-
-    <v-row class="mt-2">
-      <v-col cols="12" md="4">
-        <PieChartCard :title="externalPieTitle" :data="externalPieData" :has-legend="true" :is-loading="isLoading" />
-      </v-col>
-      <v-col cols="12" md="8">
-        <LineChartCard title="Brand Trends" :labels="brandTrendLabels" :data="externalLineData"
-          :is-loading="isLoading" />
-      </v-col>
-    </v-row>
-
-    <v-row class="mt-2">
-      <v-col cols="12" md="4">
-        <TableCard title="Brand Ranking" :headers="['Brand']" :rows="brandRankingData" :per-page="5" />
-      </v-col>
-      <v-col cols="12" md="8">
-        <BarChartCard :title="externalBarTitle" :data="variantDistributionData"
-          :segment-labels="variantDistributionSegments" :is-loading="isLoading" />
-      </v-col>
-    </v-row>
-
-    <div class="d-flex flex-wrap align-center my-6 ga-4">
-      <div class="text-h6 font-weight-bold">Brand Variations</div>
-    </div>
-
-    <v-row class="mb-6" align="stretch"> <v-col cols="12" md="4">
-    <TableCard 
-      title="Brand Variant Data" 
-      :headers="['Brand Variant']" 
-      :rows="variantRankingData" 
-      :per-page="5" 
-    />
-  </v-col>
-  <v-col cols="12" md="8">
-    <HighlightsCarousel 
-      class="fill-height"
-      :items="variantHighlights" 
-      :show-modal="showModal" 
-      :selected-item="selectedItem"
-      :active-video="videoList[0]" 
-      :is-loading-detail="isVideoLoading" 
-      @close-modal="showModal = false"
-      @item-click="handleItemClick" 
-    />
-  </v-col>
-</v-row>
-
-    <v-row class="mb-6">
-      <v-col cols="12">
-        <LineChartCard title="Brand Variant Trends" :labels="variantTrendLabels" :data="variantTrendData"
-          :is-loading="isLoading" />
-      </v-col>
-    </v-row>
-  </div>
+  </v-container>
 </template>
 
 <script setup lang="ts">
@@ -93,7 +85,7 @@ interface TrendItem { total: number; brand: string; date: string; }
 interface TrendVarianItem { total: number; varian: string; date: string; }
 interface StackedItem { varian: { [key: string]: number }; total: number; brand: string; }
 interface DateRange { labels: string[]; apiDates: string[]; }
-interface MetricCardItem { title: string; value: string | number; icon: string; color: string; trendData: number[]; }
+interface MetricCardItem { title: string; value: string | number; icon: string; trendData: number[]; labels: string[]; }
 
 // --- State Management ---
 const appStore = useAppStore();
@@ -110,9 +102,27 @@ const videoList = ref<any[]>([]);
 const isVideoLoading = ref(false);
 
 const externalMetricCards = ref<MetricCardItem[]>([
-  { title: 'Total Group Ads', value: '...', icon: 'mdi-chart-pie', color: 'primary', trendData: [] },
-  { title: 'Number of Brands', value: '...', icon: 'mdi-tag', color: 'primary', trendData: [] },
-  { title: 'Number of Brand Variants', value: '...', icon: 'mdi-tag-multiple', color: 'primary', trendData: [] },
+  {
+    title: 'Total Group Ads',
+    value: '...',
+    icon: 'mdi-chart-pie',
+    trendData: [],
+    labels: [] // Sekarang ini tidak akan merah lagi
+  },
+  {
+    title: 'Number of Brands',
+    value: '...',
+    icon: 'mdi-tag',
+    trendData: [],
+    labels: []
+  },
+  {
+    title: 'Number of Brand Variants',
+    value: '...',
+    icon: 'mdi-tag-multiple',
+    trendData: [],
+    labels: []
+  },
 ]);
 
 const rawTopBrand = ref<TableRow[]>([]);
@@ -249,12 +259,9 @@ async function fetchGroupFilterDropdown() {
 }
 
 async function fetchAllData() {
-  // Pengecekan awal
   if (!selectedExternalGroup.value) { isLoading.value = false; return; }
 
   isLoading.value = true;
-
-  // PERBAIKAN 1: Tambahkan tanda seru (!) untuk menegaskan value tidak null
   const externalFilter = { group: [selectedExternalGroup.value!] };
 
   try {
@@ -274,46 +281,71 @@ async function fetchAllData() {
     ]);
 
     let processedTrend: number[] = [];
+    let processedLabels: string[] = []; // Tambahkan ini
 
-    // PERBAIKAN 2 & 3: Type Safety untuk dailyMap
     if (trendBrandData && Array.isArray(trendBrandData)) {
       const dailyMap: Record<string, number> = {};
 
       trendBrandData.forEach((item: any) => {
-        // Explicitly convert date to string agar key aman
         const dateKey = String(item.date);
-
         if (!dailyMap[dateKey]) dailyMap[dateKey] = 0;
         dailyMap[dateKey] += (Number(item.total) || 0);
       });
 
-      processedTrend = Object.keys(dailyMap).sort().map(d => dailyMap[d] ?? 0);
+      const sortedDates = Object.keys(dailyMap).sort();
+
+      // Proses labels tanggal (DD MMM)
+      processedLabels = sortedDates.map(d => moment(d).format('DD MMM'));
+      processedTrend = sortedDates.map(d => dailyMap[d] ?? 0);
     }
 
+    // UPDATE Metric Cards: Hapus properti color agar index yang bekerja
     externalMetricCards.value = [
-      { title: 'Total Group Ads', value: totalAds?.total || 0, icon: 'mdi-chart-pie', color: 'primary', trendData: processedTrend },
-      { title: 'Number of Brands', value: totalBrands?.total || 0, icon: 'mdi-tag', color: 'primary', trendData: [...processedTrend].reverse() },
-      { title: 'Number of Brand Variants', value: totalVariants?.total || 0, icon: 'mdi-tag-multiple', color: 'primary', trendData: processedTrend.map(v => Math.floor(v * 0.8)) },
+      {
+        title: 'Total Group Ads',
+        value: totalAds?.total || 0,
+        icon: 'mdi-chart-pie',
+        trendData: processedTrend,
+        labels: processedLabels // Masukkan labels ke sini
+      },
+      {
+        title: 'Number of Brands',
+        value: totalBrands?.total || 0,
+        icon: 'mdi-tag',
+        trendData: [...processedTrend].reverse(), // Contoh variasi trend
+        labels: processedLabels
+      },
+      {
+        title: 'Number of Brand Variants',
+        value: totalVariants?.total || 0,
+        icon: 'mdi-tag-multiple',
+        trendData: processedTrend.map(v => Math.floor(v * 0.8)),
+        labels: processedLabels
+      },
     ];
 
+    // ... sisa kode pengisian data lainnya ...
     rawTopBrand.value = transformApiResponse(topBrandData);
     rawTrendBrand.value = trendBrandData || [];
     rawStackedBrandVarian.value = stackedBrandVarianData || [];
     rawTrendVarian.value = trendVarianData || [];
 
-    // Fetch Preview Videos for Cards
+    // Fetch Preview Videos
     const rawVariantsList = transformApiResponse(topVarianRaw);
     rawTopVarian.value = await Promise.all(rawVariantsList.map(async (variant) => {
       let videoLink = '';
       try {
-        // PERBAIKAN TAMBAHAN: Pastikan di sini juga menggunakan (!)
         const res = await fetchData('list', { group: [selectedExternalGroup.value!], varian: [variant.name] });
         if (res?.data?.length > 0) videoLink = res.data[0].video_link;
       } catch (e) { console.error(e); }
       return { ...variant, preview_video: videoLink };
     }));
 
-  } catch (error) { console.error(error); } finally { isLoading.value = false; }
+  } catch (error) {
+    console.error(error);
+  } finally {
+    isLoading.value = false;
+  }
 }
 
 // --- Watchers & Lifecycle ---

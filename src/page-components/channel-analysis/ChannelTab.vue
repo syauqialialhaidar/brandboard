@@ -1,15 +1,10 @@
 <template>
   <div>
     <v-row class="mt-2">
-      <v-col v-for="card in metricCards" :key="card.title" cols="12" sm="6" md="3">
-  <MetricCard 
-    :title="card.title" 
-    :value="card.value" 
-    :icon="card.icon" 
-    :color="card.color"
-    :trend-data="card.trendData" 
-  />
-</v-col>
+      <v-col v-for="(card, index) in metricCards" :key="card.title" cols="12" sm="6" md="3">
+        <MetricCard :title="card.title" :value="card.value" :icon="card.icon" :trend-data="card.trendData"
+          :labels="metricLabels" :index="index" />
+      </v-col>
     </v-row>
 
     <v-row class="mt-2">
@@ -126,7 +121,7 @@ interface MetricCardItem {
   title: string;
   value: string | number;
   icon: string;
-  color: string;
+  color?: string;
   trendData: number[];
 }
 
@@ -180,7 +175,7 @@ const channelTotalBrandBarData = computed(() => {
   return rawStackedChannelBrand.value.map(item => {
     // Menghitung jumlah brand unik dalam channel ini
     const totalBrands = item.brand ? Object.keys(item.brand).length : 0;
-    
+
     return {
       label: item.channel,
       values: [totalBrands]
@@ -246,7 +241,7 @@ const channelSimpleBarData = computed(() => {
   // Kita gunakan data dari rawStackedChannelGroup (yang berisi data group per channel)
   return rawStackedChannelGroup.value.map(item => {
     // Menghitung total mention dari semua group yang ada di channel tersebut
-    const totalMentionAllGroups = item.group 
+    const totalMentionAllGroups = item.group
       ? Object.values(item.group).reduce((sum: number, val: any) => sum + (val || 0), 0)
       : 0;
 
@@ -260,62 +255,83 @@ const channelRankingData = computed(() => rankData(rawTopChannel.value));
 const topAmbassadorData = computed(() => rankData(rawTopAmbassador.value));
 const adsTypeData = computed(() => transformSimpleTop(rawAdsType.value).map(i => ({ label: i.name, value: i.mention })));
 
+const metricLabels = computed(() => {
+  let current = moment(startDate.value);
+  const stop = moment(endDate.value);
+  const labels: string[] = [];
+
+  while (current.isSameOrBefore(stop, 'day')) {
+    labels.push(current.format('DD MMM'));
+    current.add(1, 'day');
+  }
+  return labels;
+});
+
 // API Actions
 async function fetchAllData() {
   isLoading.value = true;
   try {
     const [tSub, tCat, tAmb, topCh, trendCh, stGr, stBr, ads, amb] = await Promise.all([
       fetchData('total/sub_category'),
-      fetchData('total/category'), 
+      fetchData('total/category'),
       fetchData('total/brand_ambassador'),
-      fetchData('top/channel'), 
+      fetchData('top/channel'),
       fetchData('trend/channel'),
-      fetchData('stacked/channel/group'), 
+      fetchData('stacked/channel/group'),
       fetchData('stacked/channel/brand'),
-      fetchData('top/ads_type'), 
+      fetchData('top/ads_type'),
       fetchData('top/brand_ambassador')
     ]);
 
     // OLAH TREND DATA UNTUK METRIC CARDS
+    // 1. Inisialisasi dengan tipe yang jelas
     let processedTrend: number[] = [];
+
     if (trendCh && Array.isArray(trendCh)) {
+      let current = moment(startDate.value);
+      const stop = moment(endDate.value);
       const dailyMap: Record<string, number> = {};
+
+      while (current.isSameOrBefore(stop, 'day')) {
+        dailyMap[current.format('YYYY-MM-DD')] = 0;
+        current.add(1, 'day');
+      }
+
       trendCh.forEach((item: any) => {
-        const d = item.date;
-        if (!dailyMap[d]) dailyMap[d] = 0;
-        dailyMap[d] += (Number(item.total) || 0);
+        const dateKey = item.date as string; // Paksa sebagai string
+        if (dailyMap[dateKey] !== undefined) {
+          dailyMap[dateKey] += (Number(item.total) || 0);
+        }
       });
-      processedTrend = Object.keys(dailyMap).sort().map(date => dailyMap[date]) as number[];
+
+      // Pastikan hasil map adalah number[]
+      processedTrend = Object.keys(dailyMap).sort().map(date => Number(dailyMap[date]));
     }
 
-    // UPDATE METRIC CARDS DENGAN TREND
+    // 2. Update metricCards (Pastikan interface sudah pakai color?)
     metricCards.value = [
-      { 
-        title: 'Total Channel', 
-        value: Array.isArray(topCh) ? topCh.length : 0, 
-        icon: 'mdi-access-point', 
-        color: 'primary',
-        trendData: processedTrend 
+      {
+        title: 'Total Channel',
+        value: Array.isArray(topCh) ? topCh.length : 0,
+        icon: 'mdi-access-point',
+        trendData: processedTrend
       },
-      { 
-        title: 'Total Sub Category', 
-        value: tSub?.total || 0, 
-        icon: 'mdi-shape-outline', 
-        color: 'primary',
+      {
+        title: 'Total Sub Category',
+        value: tSub?.total || 0,
+        icon: 'mdi-shape-outline',
         trendData: [...processedTrend].reverse()
       },
-      { 
-        title: 'Total Category', 
-        value: tCat?.total || 0, 
-        icon: 'mdi-buffer', 
-        color: 'primary',
+      {
+        title: 'Total Category',
+        value: tCat?.total || 0,
+        icon: 'mdi mdi-shape-plus-outline',
         trendData: processedTrend.map(v => Math.floor(v * 0.5))
       },
-      { 
-        title: 'Total Brand Ambassador', 
-        value: tAmb?.total || 0, 
-        icon: 'mdi-account-star-outline', 
-        color: 'primary',
+      {
+        title: 'Total Brand Ambassador',
+        value: tAmb?.total || 0,
+        icon: 'mdi-account-star-outline',
         trendData: processedTrend
       },
     ];

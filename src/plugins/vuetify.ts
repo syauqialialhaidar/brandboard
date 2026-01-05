@@ -31,6 +31,9 @@ export default createVuetify({
           "grey-900": "#212121",
           white: "#fff",
         },
+        variables: {
+          'font-family': '"Poppins", sans-serif',
+        },
       },
       dark: {
         dark: true,
@@ -56,6 +59,9 @@ export default createVuetify({
           "grey-800": "#CFD3EC",
           "grey-900": "#E7E9F6",
           white: "#fff",
+        },
+        variables: {
+          'font-family': '"Poppins", sans-serif',
         },
       },
     },

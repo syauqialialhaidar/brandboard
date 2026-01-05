@@ -1,65 +1,42 @@
 <template>
-  <v-navigation-drawer 
-    color="background" 
-    :width="320" 
-    :rail-width="88" 
-    :permanent="isDesktop" 
-    :temporary="!isDesktop"
-    :rail="isDesktop ? rail : false" 
-    :model-value="isDesktop ? true : isOpen"
-    @update:model-value="val => { if (!isDesktop) isOpen = val }" 
-    class="custom-drawer border-none" 
-    elevation="0"
-  >
-    <div class="drawer-header-wrapper" :class="{ 'rail-padding': rail }">
-      <div v-if="!rail" class="header-content">
-        <v-img :src="currentLogo" width="62" height="50" contain class="flex-grow-0"></v-img>
-        <div class="text-group">
-          <h2 class="brand-title">BRANDBOARD</h2>
-          <span class="brand-subtitle">TVC</span>
+  <v-navigation-drawer color="transparent" :width="280" :rail-width="80" :permanent="isDesktop" :temporary="!isDesktop"
+    :rail="isDesktop ? rail : false" :model-value="isDesktop ? true : isOpen"
+    @update:model-value="val => { if (!isDesktop) isOpen = val }" class="border-none pl-4 py-4" elevation="0" floating>
+    <v-sheet color="surface" :class="['nav-card-container', { 'rail-card': rail }]" class="d-flex flex-column">
+      <div class="drawer-header-wrapper" :class="{ 'rail-padding': rail }">
+
+        <!-- LOGO CENTER -->
+        <div v-if="!rail" class="logo-wrapper d-flex justify-center align-center mb-4">
+          <v-img :src="logo" width="160" height="160" contain />
         </div>
-        <v-spacer></v-spacer>
-        <v-btn 
-          v-if="isDesktop"
-          variant="tonal" 
-          icon="mdi-chevron-double-left" 
-          size="x-small" 
-          color="primary" 
-          class="toggle-btn"
-          @click.stop="handleToggleClick" 
-        />
+
+        <!-- TEXT CENTER + BUTTON RIGHT -->
+        <div v-if="!rail" class="brand-row position-relative px-4">
+          <h2 class="brand-title text-center">
+            BRANDBOARD TVC
+          </h2>
+
+          <v-btn v-if="isDesktop" variant="text" icon="mdi-chevron-double-left" size="x-small" color="primary"
+            class="brand-btn" @click.stop="handleToggleClick" />
+        </div>
+
+        <!-- RAIL -->
+        <div v-else class="rail-header-content text-center py-2">
+          <v-btn variant="text" icon="mdi-chevron-double-right" size="small" color="primary" class="rounded-lg"
+            @click.stop="rail = false" />
+        </div>
+
       </div>
 
-      <div v-else class="rail-header-content">
-        <v-btn 
-          variant="tonal" 
-          icon="mdi-chevron-double-right" 
-          size="small" 
-          color="primary" 
-          class="rounded-lg"
-          @click.stop="rail = false" 
-        />
-      </div>
-    </div>
 
-    <v-sheet 
-      color="surface" 
-      :class="['nav-card-container', { 'rail-card': rail }]"
-    >
-      <v-list nav density="compact" class="drawer-list bg-transparent">
-        <v-list-item 
-          v-for="item in navItems" 
-          :key="item.title" 
-          :to="item.to" 
-          rounded="lg" 
-          class="sidebar-item"
-          :ripple="false"
-        >
+      <v-list nav density="compact" class="drawer-list bg-transparent flex-grow-1 blue-text-list">
+        <v-list-item v-for="item in navItems" :key="item.title" :to="item.to" rounded="lg" class="sidebar-item mb-2"
+          :ripple="false" color="white">
           <template #prepend>
-            <v-icon :icon="item.icon" size="28" class="item-icon" :class="{ 'mx-auto': rail }" />
+            <v-icon :icon="item.icon" size="22" class="item-icon text-primary" />
           </template>
 
-          <v-list-item-title v-if="!rail" class="item-text font-weight-bold ml-3">
+          <v-list-item-title v-if="!rail" class="item-text font-weight-bold ml-2 text-primary">
             {{ item.title }}
           </v-list-item-title>
         </v-list-item>
@@ -71,9 +48,9 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useTheme } from 'vuetify'
-
 import logoLight from '@/assets/images/logo-light.png'
 import logoDark from '@/assets/images/logo-dark.png'
+import logo from '@/assets/images/tvc.png'
 
 const props = defineProps<{
   navItems: Array<{ title: string; icon: string; to: string }>,
@@ -98,103 +75,80 @@ const handleToggleClick = () => {
 </script>
 
 <style scoped>
-.custom-drawer {
-  left: 40px !important;
-  top: 20px !important;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+.nav-card-container {
+  height: 100%;
+  padding: 20px 10px;
+  /* Reduced padding slightly */
+  border-radius: 20px;
+  border: 1px solid rgba(var(--v-border-color), 0.08);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.04);
+  transition: all 0.3s ease;
 }
 
-/* 1. Header Layout */
+.rail-card {
+  padding: 20px 6px;
+}
+
 .drawer-header-wrapper {
-  padding: 32px 16px 24px 24px;
-  transition: padding 0.3s ease;
-}
-
-.rail-padding {
-  padding: 32px 0 24px 0 !important;
-}
-
-.header-content {
-  display: flex;
-  align-items: center;
-  width: 100%;
-}
-
-.rail-header-content {
-  display: flex;
-  justify-content: center;
-  width: 100%;
-}
-
-.text-group {
-  display: flex;
-  flex-direction: column;
-  margin-left: 12px;
+  margin-bottom: 20px;
 }
 
 .brand-title {
-  font-size: 1.2rem !important;
-  font-weight: 800 !important;
+  font-size: 0.95rem;
+  /* Adjusted for smaller width */
+  font-weight: 800;
   color: rgb(var(--v-theme-primary));
-  line-height: 1.1;
+  line-height: 1;
 }
 
 .brand-subtitle {
-  font-size: 1.2rem;
-  font-weight: 800;
+  font-size: 0.7rem;
+  font-weight: 700;
   color: rgb(var(--v-theme-primary));
-  filter: brightness(1.2);
-  line-height: 1.1;
+  opacity: 0.8;
+  letter-spacing: 2px;
 }
 
-/* 2. Nav Card Container */
-.nav-card-container {
-  margin: 0 16px 16px 16px;
-  padding: 20px 10px;
-  border-radius: 20px;
-  border: 1px solid rgba(var(--v-border-color), 0.05);
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
-  min-height: calc(100vh - 160px);
-  transition: all 0.3s ease;
-}
-
-/* Saat tertutup, card menyesuaikan lebar rail */
-.rail-card {
-  margin: 0 8px;
-  padding: 20px 0;
-}
-
-/* 3. Menu Item Styling */
+/* Base state for Sidebar Items */
 .sidebar-item {
-  min-height: 50px !important;
-  margin-bottom: 8px !important;
-  color: rgba(var(--v-theme-on-surface), 0.7) !important;
-  transition: all 0.3s ease;
+  color: rgb(var(--v-theme-primary)) !important;
+  /* Force Blue Text */
+  transition: all 0.2s ease;
 }
 
-.item-text {
-  font-size: 1rem !important;
-}
-
-/* 4. Active State */
+/* Active State - Turn Background Blue and Text White */
 .sidebar-item.v-list-item--active {
-  background: linear-gradient(90deg, rgb(var(--v-theme-primary)) 0%, #6da8e7 100%) !important;
-  color: white !important;
+  background: rgb(var(--v-theme-primary));
+  box-shadow: 0 4px 12px rgba(var(--v-theme-primary), 0.4);
+  border: none;
 }
 
-.sidebar-item.v-list-item--active :deep(.v-icon) {
-  color: white !important;
+/* Important: When active, force inner text/icons to white */
+.sidebar-item.v-list-item--active :deep(.v-icon),
+.sidebar-item.v-list-item--active :deep(.v-list-item-title) {
+  color: #ffffff !important;
 }
 
-:deep(.v-list-item__overlay) {
-  display: none;
+/* Hover State */
+.sidebar-item:hover:not(.v-list-item--active) {
+  background: rgba(var(--v-theme-primary), 0.08);
 }
 
-/* Memastikan ikon berada di tengah saat rail mode */
-:deep(.v-list-item__prepend) {
-  display: flex;
-  justify-content: center;
-  width: 100%;
-  margin: 0 !important;
+.brand-row {
+  position: relative;
+  margin-top: 8px;
+}
+
+.brand-title {
+  font-size: 14px;
+  font-weight: 600;
+  text-align: center;
+}
+
+.brand-btn {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
 }
 </style>

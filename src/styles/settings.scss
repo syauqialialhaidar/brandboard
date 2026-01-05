@@ -7,3 +7,29 @@ body {
   color: rgb(var(--v-theme-on-background));
   margin: 0;
 }
+
+/* Layout / modal fixes to avoid overlapping elements */
+/* Keep app header above content and give main content top padding */
+.v-application .v-app-bar.app-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1300;
+}
+
+.v-application .v-main {
+  padding-top: 120px; /* match header height + spacing */
+}
+
+/* Dialog/modal sizing and z-index to prevent overlaps on small screens */
+.v-dialog__content {
+  z-index: 1400;
+}
+
+.modal-card-premium {
+  max-height: 90vh;
+  overflow: auto;
+  width: 95vw;
+  max-width: 1150px;
+}
