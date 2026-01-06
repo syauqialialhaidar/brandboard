@@ -1,5 +1,6 @@
 <template>
-  <v-card class="pa-0 pb-4 rounded-lg overflow-hidden d-flex flex-column" color="surface" style="height: 100%;">
+  <v-card class="pa-0 pb-4 premium-chart-card overflow-hidden d-flex flex-column" elevation="0" color="surface"
+    style="height: 100%;">
     <div class="d-flex flex-wrap align-center pa-4">
       <v-card-title class="text-subtitle-1 font-weight-bold pa-0">
         {{ title }}
@@ -10,25 +11,15 @@
 
     <v-card-text class="pa-4 d-flex flex-column">
       <template v-if="!isLoading && hasData">
-        <PieChart
-          :data="data"
-          :colors="colors"
-          :options="chartOptions"
-        />
+        <PieChart :data="data" :colors="colors" :options="chartOptions" />
       </template>
       <template v-else-if="isLoading">
         <div class="d-flex justify-center align-center fill-height">
-          <v-progress-circular
-            indeterminate
-            color="primary"
-            size="64"
-          ></v-progress-circular>
+          <v-progress-circular indeterminate color="primary" size="64"></v-progress-circular>
         </div>
       </template>
       <template v-else>
-        <div
-          class="d-flex justify-center align-center fill-height text-grey-darken-1"
-        >
+        <div class="d-flex justify-center align-center fill-height text-grey-darken-1">
           No data available.
         </div>
       </template>
@@ -69,3 +60,28 @@ const props = defineProps({
 });
 const hasData = computed(() => props.data && props.data.length > 0);
 </script>
+<style scoped>
+.premium-chart-card {
+  /* Radius disamakan dengan Highlight.vue */
+  border-radius: 20px !important;
+  
+  /* Border tipis agar terlihat elegan */
+  border: 1px solid rgba(var(--v-border-color), 0.05) !important;
+  
+  /* Shadow halus (Soft Shadow) sesuai Highlight.vue */
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05) !important;
+  
+  transition: all 0.3s ease;
+}
+
+/* Menghilangkan border bottom pada divider agar lebih clean */
+:deep(.v-divider) {
+  opacity: 0.05;
+}
+
+/* Mengatur agar konten chart menyesuaikan dengan container yang bulat */
+.v-card-text {
+  flex-grow: 1;
+  min-height: 300px; /* Sesuaikan dengan kebutuhan layoutmu */
+}
+</style>

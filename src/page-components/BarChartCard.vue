@@ -1,5 +1,6 @@
 <template>
-  <v-card class="pa-0 pb-4 rounded-lg overflow-hidden d-flex flex-column" color="surface" style="height: 100%;">
+  <v-card class="pa-0 pb-4 premium-bar-card overflow-hidden d-flex flex-column" elevation="0" color="surface"
+    style="height: 100%;">
     <div class="d-flex flex-wrap align-center pa-4 ga-4">
       <v-card-title class="text-subtitle-1 font-weight-bold pa-0">{{ title }}</v-card-title>
       <v-spacer></v-spacer>
@@ -111,3 +112,41 @@ const barChartOptions = computed(() => ({
 
 const hasData = computed(() => props.data?.length > 0);
 </script>
+<style scoped>
+/* Class Utama Card disamakan dengan Highlight.vue */
+.premium-bar-card {
+  border-radius: 20px !important;
+  border: 1px solid rgba(var(--v-border-color), 0.05) !important;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05) !important;
+  transition: all 0.3s ease;
+}
+
+/* Divider tipis agar tidak mengganggu visual chart */
+:deep(.v-divider) {
+  opacity: 0.05;
+}
+
+/* Menyelaraskan Toggle Button dengan estetika Highlight */
+.v-btn-toggle {
+  border-radius: 12px !important; /* Membuat sudut toggle lebih lembut */
+  border: 1px solid rgba(var(--v-border-color), 0.1) !important;
+  height: 32px;
+}
+
+.v-btn-toggle .v-btn {
+  border-radius: 8px !important;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.v-btn-toggle .v-btn--active {
+  background-color: rgba(var(--v-theme-primary), 0.1) !important;
+  color: rgb(var(--v-theme-primary)) !important;
+}
+
+/* Memastikan area chart memiliki ruang yang konsisten */
+.v-card-text {
+  flex-grow: 1;
+  min-height: 350px; /* Standar minimal untuk chart bar agar tidak gepeng */
+}
+</style>

@@ -1,30 +1,17 @@
 <template>
-  <v-card class="pa-0 pb-4 rounded-lg overflow-hidden d-flex flex-column" color="surface" style="height: 100%;">
+  <v-card class="pa-0 pb-4 premium-line-card overflow-hidden d-flex flex-column" elevation="0" color="surface"
+    style="height: 100%;">
     <div class="d-flex flex-wrap align-center pa-4 ga-4">
       <v-card-title class="text-subtitle-1 font-weight-bold pa-0">
         {{ title }}
       </v-card-title>
       <v-spacer></v-spacer>
 
-      <v-btn-toggle
-        v-if="showToggle"
-        :model-value="toggle"
-        @update:model-value="$emit('toggle-change', $event)"
-        density="compact"
-        divided
-      >
-        <v-btn value="top10" class="text-capitalize px-3" style="height: 32px;"
-          >Top 10</v-btn
-        >
-        <v-btn value="all" class="text-capitalize px-3" style="height: 32px;"
-          >All</v-btn
-        >
-        <v-btn
-          value="bottom10"
-          class="text-capitalize px-3"
-          style="height: 32px;"
-          >Bottom 10</v-btn
-        >
+      <v-btn-toggle v-if="showToggle" :model-value="toggle" @update:model-value="$emit('toggle-change', $event)"
+        density="compact" divided>
+        <v-btn value="top10" class="text-capitalize px-3" style="height: 32px;">Top 10</v-btn>
+        <v-btn value="all" class="text-capitalize px-3" style="height: 32px;">All</v-btn>
+        <v-btn value="bottom10" class="text-capitalize px-3" style="height: 32px;">Bottom 10</v-btn>
       </v-btn-toggle>
     </div>
 
@@ -32,25 +19,15 @@
 
     <v-card-text class="pa-4 d-flex flex-column" style="flex-grow: 1;">
       <template v-if="!isLoading && hasData">
-        <LineChart
-          :datasets="mappedDatasets"
-          :labels="labels"
-          :options="chartOptions"
-        />
+        <LineChart :datasets="mappedDatasets" :labels="labels" :options="chartOptions" />
       </template>
       <template v-else-if="isLoading">
         <div class="d-flex justify-center align-center fill-height">
-          <v-progress-circular
-            indeterminate
-            color="primary"
-            size="64"
-          ></v-progress-circular>
+          <v-progress-circular indeterminate color="primary" size="64"></v-progress-circular>
         </div>
       </template>
       <template v-else>
-        <div
-          class="d-flex justify-center align-center fill-height text-grey-darken-1"
-        >
+        <div class="d-flex justify-center align-center fill-height text-grey-darken-1">
           No data available.
         </div>
       </template>
@@ -127,5 +104,33 @@ const mappedDatasets = computed(() =>
 .v-btn-toggle .v-btn--active {
   background-color: rgba(var(--v-theme-primary), 0.1) !important;
   color: rgb(var(--v-theme-primary)) !important;
+}
+.premium-line-card {
+  border-radius: 20px !important;
+  border: 1px solid rgba(var(--v-border-color), 0.05) !important;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05) !important;
+  transition: all 0.3s ease;
+}
+
+/* Sempurnakan tampilan Button Toggle agar serasi dengan kartu yang bulat */
+.v-btn-toggle {
+  border-radius: 12px !important; /* Membuat sudut toggle sedikit lebih lembut */
+  border: 1px solid rgba(var(--v-border-color), 0.1) !important;
+}
+
+.v-btn-toggle .v-btn--active {
+  background-color: rgba(var(--v-theme-primary), 0.1) !important;
+  color: rgb(var(--v-theme-primary)) !important;
+}
+
+/* Divider yang lebih tipis agar tidak memutus aliran visual secara tajam */
+:deep(.v-divider) {
+  opacity: 0.05;
+}
+
+/* Memastikan chart memiliki ruang yang cukup */
+.v-card-text {
+  flex-grow: 1;
+  min-height: 350px;
 }
 </style>

@@ -1,5 +1,5 @@
 <template>
-  <v-card class="pa-0 rounded-lg overflow-hidden d-flex flex-column fill-height" color="surface">
+  <v-card class="pa-0 table-premium-card overflow-hidden d-flex flex-column fill-height" elevation="0" color="surface">
     <div class="d-flex flex-wrap align-center pa-4">
       <v-card-title class="text-subtitle-1 font-weight-bold pa-0">
         {{ title }}
@@ -196,8 +196,10 @@ const displayStartIndex = computed(() =>
 
 /* Styling untuk teks yang di-highlight (Search) */
 :deep(.highlight-mark) {
-  background-color: #ffeb3b; /* Kuning standar */
-  color: #000; /* Teks tetap hitam agar kontras */
+  background-color: #ffeb3b;
+  /* Kuning standar */
+  color: #000;
+  /* Teks tetap hitam agar kontras */
   border-radius: 2px;
   padding: 0 2px;
 }
@@ -207,6 +209,7 @@ const displayStartIndex = computed(() =>
   background-color: #fdd835;
   color: #000;
 }
+
 /* Menghilangkan efek garis samping yang sebelumnya ada */
 .row-internal td {
   border-bottom: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
@@ -216,5 +219,22 @@ const displayStartIndex = computed(() =>
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+/* Tambahkan atau timpa class ini di bagian style */
+.table-premium-card {
+  border-radius: 20px !important;
+  border: 1px solid rgba(var(--v-border-color), 0.05) !important;
+  /* Shadow halus sesuai highlight.vue */
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05) !important;
+}
+
+/* Pastikan header tabel juga mengikuti estetika yang lebih bersih */
+.table-custom th {
+  position: sticky;
+  top: 0;
+  /* Mengurangi opacity background header agar lebih soft */
+  background-color: rgba(var(--v-theme-primary), 0.15); 
+  font-weight: 600;
+  z-index: 1;
 }
 </style>

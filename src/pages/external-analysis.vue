@@ -42,22 +42,24 @@
         <div class="text-h6 font-weight-bold">Brand Variations</div>
       </div>
 
-      <v-row class="mb-6" align="stretch"> <v-col cols="12" md="4">
+      <v-row class="mb-6" align="stretch"> 
+        <v-col cols="12" md="4">
           <TableCard title="Brand Variant Data" :headers="['Brand Variant']" :rows="variantRankingData" :per-page="5" />
         </v-col>
         <v-col cols="12" md="8">
+          <LineChartCard title="Brand Variant Trends" :labels="variantTrendLabels" :data="variantTrendData"
+            :is-loading="isLoading" />
+        </v-col>
+      </v-row>
+
+      <v-row class="mb-6">
+        <v-col cols="12" >
           <HighlightsCarousel total-title="Competitor Mentions" item-label="Corporates" class="fill-height"
             :items="variantHighlights" :show-modal="showModal" :selected-item="selectedItem"
             :active-video="videoList[0]" :is-loading-detail="isVideoLoading" @close-modal="showModal = false"
             @item-click="handleItemClick" />
         </v-col>
-      </v-row>
-
-      <v-row class="mb-6">
-        <v-col cols="12">
-          <LineChartCard title="Brand Variant Trends" :labels="variantTrendLabels" :data="variantTrendData"
-            :is-loading="isLoading" />
-        </v-col>
+        
       </v-row>
     </div>
   </v-container>

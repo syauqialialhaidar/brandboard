@@ -86,27 +86,28 @@
             </v-col>
           </v-row>
         </v-col>
+        <v-col cols="12" md="4">
+          <PieChartCard title="All Brand's Variants" :data="variantPieData" :has-legend="true"
+            :is-loading="isVariantLoading" />
+        </v-col>
+        <v-col cols="12" md="5">
+          <TableCard title="Variant's Ranking" :headers="['Brand Variant']" :rows="variantRankingData" :per-page="5"
+            class="h-100" />
+        </v-col>
 
-        <v-col cols="12" md="9">
+        
+      </v-row>
+
+      <v-row class="mb-6">
+        <v-col cols="12">
           <HighlightsCarousel total-title="Variants Mentions" item-label="Variants" :show-total="true"
             total-icon="mdi-domain" total-icon-color="primary" :total-value="carouselTotalValue"
             :items="variantHighlights" :show-modal="showModal" :selected-item="selectedItem"
             :active-video="videoList[0]" :is-loading-detail="isVideoLoading" @close-modal="showModal = false"
             @item-click="handleItemClick" />
         </v-col>
+        
       </v-row>
-
-      <v-row class="mb-6 d-flex" align="stretch">
-        <v-col cols="12" md="4">
-          <PieChartCard title="All Brand's Variants" :data="variantPieData" :has-legend="true"
-            :is-loading="isVariantLoading" />
-        </v-col>
-        <v-col cols="12" md="8">
-          <TableCard title="Variant's Ranking" :headers="['Brand Variant']" :rows="variantRankingData" :per-page="5"
-            class="h-100" />
-        </v-col>
-      </v-row>
-
       <v-row class="mb-6">
         <v-col cols="12">
           <LineChartCard title="Internal Brand Variant Trends" :labels="variantTrendLabels" :data="variantTrendData"

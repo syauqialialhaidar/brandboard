@@ -49,18 +49,22 @@
     </v-row>
 
     <v-row class="mt-2">
-      <v-col cols="12" md="3">
+      <v-col cols="12" md="6">
         <PieChartCard title="Program Type" :data="adsTypeData" :has-legend="true" :is-loading="isLoading" />
       </v-col>
-      <v-col cols="12" md="3">
+      <v-col cols="12" md="6">
         <PieChartCard title="Program Scope" :data="[]" :has-legend="true" :is-loading="isLoading" />
       </v-col>
-      <v-col cols="12" md="3">
+      
+    </v-row>
+    <v-row class="mt-2 mb-6">
+      <v-col cols="12" md="6">
         <PieChartCard title="Audience Gender" :data="[]" :has-legend="true" :is-loading="isLoading" />
       </v-col>
-      <v-col cols="12" md="3">
+      <v-col cols="12" md="6">
         <PieChartCard title="Audience Age" :data="[]" :has-legend="true" :is-loading="isLoading" />
       </v-col>
+
     </v-row>
 
     <v-row class="mt-2 mb-6">
