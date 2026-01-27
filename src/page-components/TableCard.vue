@@ -18,6 +18,7 @@
               {{ header }}
             </th>
             <th class="col-mention text-center">Mention</th>
+            <th class="col-action text-center">Aksi</th>
           </tr>
         </thead>
 
@@ -26,12 +27,23 @@
             <td class="col-rank text-center text-primary font-weight-bold">
               #{{ row.rank }}
             </td>
+
             <td v-for="(col, cIndex) in dynamicHeaders" :key="cIndex" class="truncate">
-              <span v-html="highlightText(row[col.toLowerCase()])"></span>
+              <span v-html="highlightText(row[col.toLowerCase().replace(/\s+/g, '_')]) || row[col.toLowerCase()]"></span>
             </td>
 
             <td class="col-mention text-center">
               <span v-html="highlightText(row.mention)"></span>
+            </td>
+
+            <td class="col-action text-center">
+              <v-btn 
+                icon="mdi-eye" 
+                variant="text" 
+                size="small" 
+                color="primary" 
+                @click="viewDetail(row)" 
+              />
             </td>
           </tr>
         </tbody>
@@ -46,6 +58,31 @@
         <v-pagination v-model="currentPage" :length="totalPages" :total-visible="3" density="compact" class="ms-auto" />
       </div>
     </v-card-text>
+
+    <v-dialog v-model="isModalOpen" max-width="500">
+      <v-card border rounded="xl">
+        <v-card-title class="pa-4 d-flex align-center">
+          <span class="font-weight-bold">Detail Informasi</span>
+          <v-spacer></v-spacer>
+          <v-btn icon="mdi-close" variant="text" @click="isModalOpen = false" />
+        </v-card-title>
+        
+        <v-divider></v-divider>
+        
+        <v-card-text class="pa-4">
+          <div v-if="selectedItem">
+            <pre class="bg-grey-lighten-4 pa-3 rounded-lg text-caption">{{ selectedItem }}</pre>
+          </div>
+        </v-card-text>
+
+        <v-card-actions class="pa-4">
+          <v-spacer></v-spacer>
+          <v-btn color="primary" variant="flat" rounded="lg" @click="isModalOpen = false">
+            Tutup
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </v-card>
 </template>
 
@@ -55,6 +92,7 @@ import { ref, computed, watch } from 'vue'
 interface TableRow {
   rank?: number
   mention?: string
+  isInternal?: boolean
   [key: string]: any
 }
 
@@ -65,23 +103,36 @@ const props = defineProps<{
   perPage?: number
 }>()
 
+// --- State ---
+const searchQuery = ref('')
+const currentPage = ref(1)
+const isModalOpen = ref(false)
+const selectedItem = ref<TableRow | null>(null)
+
+const perPage = computed(() => props.perPage ?? 5)
+
+// --- Logic Modal ---
+const viewDetail = (item: TableRow) => {
+  selectedItem.value = item
+  isModalOpen.value = true
+}
+
+// --- Logic Pencarian & Highlight ---
 const highlightText = (text: any) => {
+  if (text === undefined || text === null) return '';
   const val = String(text);
   if (!searchQuery.value) return val;
 
-  // Escape karakter khusus regex dan buat regex case-insensitive
   const q = searchQuery.value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   const regex = new RegExp(`(${q})`, 'gi');
 
   return val.replace(regex, '<mark class="highlight-mark">$1</mark>');
 }
 
-const searchQuery = ref('')
-const currentPage = ref(1)
-const perPage = computed(() => props.perPage ?? 10)
-
+// Reset page jika search berubah
 watch(searchQuery, () => (currentPage.value = 1))
 
+// Reset page jika rows dari props berubah
 watch(
   () => props.rows,
   () => {
@@ -90,8 +141,9 @@ watch(
   { deep: true }
 )
 
+// Menghilangkan rank, mention, dan aksi dari kolom tengah agar tidak double
 const dynamicHeaders = computed(() =>
-  props.headers.filter(h => !['rank', 'mention'].includes(h.toLowerCase()))
+  props.headers.filter(h => !['rank', 'mention', 'aksi', 'action'].includes(h.toLowerCase()))
 )
 
 const filteredData = computed(() => {
@@ -102,6 +154,7 @@ const filteredData = computed(() => {
   )
 })
 
+// --- Logic Pagination ---
 const totalItems = computed(() => filteredData.value.length)
 const totalPages = computed(() => Math.ceil(totalItems.value / perPage.value))
 
@@ -145,7 +198,7 @@ const displayStartIndex = computed(() =>
 .table-custom th {
   position: sticky;
   top: 0;
-  background-color: rgba(var(--v-theme-primary), 0.3);
+  background-color: rgba(var(--v-theme-primary), 0.15);
   font-weight: 600;
   z-index: 1;
 }
@@ -157,62 +210,31 @@ const displayStartIndex = computed(() =>
 }
 
 .col-rank,
-.col-mention {
+.col-mention,
+.col-action {
   width: 80px;
 }
 
-.col-rank,
-.col-mention {
-  text-align: center;
-}
-
-@media (max-width: 768px) {
-
-  .table-custom th,
-  .table-custom td {
-    padding: 6px 8px;
-    font-size: 0.8rem;
-  }
-
-  .scroller-table {
-    border-radius: 0;
-    margin-left: -12px;
-    margin-right: -12px;
-    width: calc(100% + 24px);
-  }
-}
-
-/* Warna Baris Internal yang adaptif */
+/* Row Styling */
 .row-internal {
-  /* Di Light Mode: Hijau Toska lembut */
-  background-color: rgba(174, 236, 221, 0.927) !important;
+  background-color: rgba(174, 236, 221, 0.4) !important;
 }
 
-/* Saat Dark Mode aktif (Vuetify menambahkan class v-theme--dark pada parent) */
 .v-theme--dark .row-internal {
-  /* Di Dark Mode: Gunakan warna yang lebih gelap/redup agar teks tetap terbaca */
-  background-color: rgba(0, 150, 135, 0.655) !important;
+  background-color: rgba(0, 150, 135, 0.2) !important;
 }
 
-/* Styling untuk teks yang di-highlight (Search) */
+/* Highlight Styling */
 :deep(.highlight-mark) {
   background-color: #ffeb3b;
-  /* Kuning standar */
   color: #000;
-  /* Teks tetap hitam agar kontras */
   border-radius: 2px;
   padding: 0 2px;
 }
 
-/* Penyesuaian Highlight di Dark Mode */
 .v-theme--dark :deep(.highlight-mark) {
   background-color: #fdd835;
   color: #000;
-}
-
-/* Menghilangkan efek garis samping yang sebelumnya ada */
-.row-internal td {
-  border-bottom: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
 }
 
 .truncate {
@@ -220,21 +242,18 @@ const displayStartIndex = computed(() =>
   overflow: hidden;
   text-overflow: ellipsis;
 }
-/* Tambahkan atau timpa class ini di bagian style */
+
 .table-premium-card {
   border-radius: 20px !important;
-  border: 1px solid rgba(var(--v-border-color), 0.05) !important;
-  /* Shadow halus sesuai highlight.vue */
+  border: 1px solid rgba(var(--v-border-color), 0.1) !important;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05) !important;
 }
 
-/* Pastikan header tabel juga mengikuti estetika yang lebih bersih */
-.table-custom th {
-  position: sticky;
-  top: 0;
-  /* Mengurangi opacity background header agar lebih soft */
-  background-color: rgba(var(--v-theme-primary), 0.15); 
-  font-weight: 600;
-  z-index: 1;
+@media (max-width: 768px) {
+  .table-custom th,
+  .table-custom td {
+    padding: 6px 8px;
+    font-size: 0.8rem;
+  }
 }
 </style>

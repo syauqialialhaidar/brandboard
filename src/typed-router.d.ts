@@ -19,8 +19,10 @@ declare module 'vue-router/auto-routes' {
    */
   export interface RouteNamedMap {
     '/channel-analysis': RouteRecordInfo<'/channel-analysis', '/channel-analysis', Record<never, never>, Record<never, never>>,
+    '/comparison': RouteRecordInfo<'/comparison', '/comparison', Record<never, never>, Record<never, never>>,
     '/external-analysis': RouteRecordInfo<'/external-analysis', '/external-analysis', Record<never, never>, Record<never, never>>,
     '/general-analysis': RouteRecordInfo<'/general-analysis', '/general-analysis', Record<never, never>, Record<never, never>>,
+    '/industry-analysis': RouteRecordInfo<'/industry-analysis', '/industry-analysis', Record<never, never>, Record<never, never>>,
     '/internal-analysis': RouteRecordInfo<'/internal-analysis', '/internal-analysis', Record<never, never>, Record<never, never>>,
   }
 
@@ -39,12 +41,20 @@ declare module 'vue-router/auto-routes' {
       routes: '/channel-analysis'
       views: never
     }
+    'src/pages/comparison.vue': {
+      routes: '/comparison'
+      views: never
+    }
     'src/pages/external-analysis.vue': {
       routes: '/external-analysis'
       views: never
     }
     'src/pages/general-analysis.vue': {
       routes: '/general-analysis'
+      views: never
+    }
+    'src/pages/industry-analysis.vue': {
+      routes: '/industry-analysis'
       views: never
     }
     'src/pages/internal-analysis.vue': {

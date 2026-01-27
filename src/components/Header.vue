@@ -5,7 +5,7 @@
     color="transparent"
     class="app-header position-absolute"
   >
-    <v-container fluid class="">
+    <v-container fluid>
       <v-card class="header-card-container d-flex align-center px-4" color="surface" height="70">
         <v-btn
           v-if="!isDesktop"
@@ -27,7 +27,7 @@
 
         <v-spacer></v-spacer>
 
-        <div class="d-flex align-center gap-2">
+        <div class="d-flex align-center gap-3">
           <v-btn
             :icon="theme.global.current.value.dark ? 'mdi-white-balance-sunny' : 'mdi-moon-waning-crescent'"
             variant="text"
@@ -50,25 +50,16 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref } from 'vue'
 import { useTheme } from 'vuetify'
 import profileJpg from '@/assets/images/profile.jpg'
-import logoLight from '@/assets/images/logo-light.png' // Gunakan logo yang sama dengan sidebar
-import logoDark from '@/assets/images/logo-dark.png'
 import unileverLogo from '@/assets/images/Unilever.png'
 
-defineProps<{
-  isDesktop: boolean
-}>()
-
+defineProps<{ isDesktop: boolean }>()
 defineEmits(['open-sidebar'])
 
 const theme = useTheme()
 const profileImage = ref(profileJpg)
-
-const currentLogo = computed(() => {
-  return theme.global.name.value === 'dark' ? logoDark : logoLight
-})
 
 function toggleTheme() {
   theme.global.name.value = theme.global.current.value.dark ? 'light' : 'dark'
@@ -76,46 +67,17 @@ function toggleTheme() {
 </script>
 
 <style scoped>
-.app-header {
-  top: 10px !important; /* Memberikan sedikit jarak dari atas layar */
-  z-index: 1001;
-}
-
+.app-header { top: 10px !important; z-index: 1001; }
 .header-card-container {
-  border-radius: 20px !important; /* Menyamakan dengan Sidebar */
+  border-radius: 20px !important;
   border: 1px solid rgba(var(--v-border-color), 0.05) !important;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05) !important;
-  transition: all 0.3s ease;
 }
-
-.text-group {
-  display: flex;
-  flex-direction: column;
-  line-height: 1.1;
-}
-
 .brand-title {
   font-size: 1rem !important;
   font-weight: 800 !important;
   color: rgb(var(--v-theme-primary));
-  letter-spacing: 0.5px;
 }
-
-.brand-subtitle {
-  font-size: 0.85rem;
-  font-weight: 700;
-  color: rgb(var(--v-theme-primary));
-  filter: brightness(1.2);
-  opacity: 0.8;
-}
-
-/* Utilitas tambahan untuk spasi antar icon */
-.gap-2 {
-  display: flex;
-  gap: 8px;
-}
-
-.border-primary {
-  border: 2px solid rgba(var(--v-theme-primary), 0.2);
-}
+.gap-3 { display: flex; gap: 12px; }
+.border-primary { border: 2px solid rgba(var(--v-theme-primary), 0.2); }
 </style>

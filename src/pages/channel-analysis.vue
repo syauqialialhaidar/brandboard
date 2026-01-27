@@ -17,7 +17,7 @@
       </v-tab>
       <v-tab value="brand">
         <v-icon start>mdi-tag-outline</v-icon>
-        Brand
+        Program
       </v-tab>
     </v-tabs>
 

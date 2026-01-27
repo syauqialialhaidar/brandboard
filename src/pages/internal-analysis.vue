@@ -1,6 +1,8 @@
 <template>
   <v-container fluid class="pa-0">
-    <PageTitle title="Internal Analysis" :show-channel-filter="true" class="mb-6" />
+    <PageTitle title="Internal Analysis" only-internal
+      :enabled-filters="['channel', 'kategori', 'sub_kategori']"
+      @update:filter="handleFilterUpdate" />
     <div>
 
       <h2 class="text-h6 font-weight-bold mb-4">General Internal</h2>
@@ -46,6 +48,39 @@
             :labels="card.labels" />
         </v-col>
       </v-row>
+      <v-row class="mb-8">
+        <v-col cols="12">
+          <HighlightsCarousel total-title="Internal Brands Mentions" item-label="Brands" :items="myBrandHighlights"
+            :total-items-count="rawInternalBrandsForHighlight.length" :is-loading-more="isFetchingMore"
+            :total-value="totalUnileverAds" :start-date="startDate" :end-date="endDate" @next-page="handleLoadMore"
+            @item-click="handleBrandClick" />
+        </v-col>
+      </v-row>
+      
+      <v-row class="mb-8">
+      <v-col cols="12" md="4">
+        <TableCard title="Top Program RCTI" :headers="['Program Name']" :rows="topPrograms" :per-page="5"
+          class="h-100 rounded-xl" />
+      </v-col>
+
+      <v-col cols="12" md="4">
+        <TableCard title="Top Brand Ambasador" :headers="['Program Name']" :rows="topPrograms" :per-page="5"
+          class="h-100 rounded-xl" />
+      </v-col>
+
+      <v-col cols="12" md="4" class="d-flex flex-column">
+        <v-row>
+          <v-col cols="12">
+            <MetricCard title="Rate Card" value="3.m" icon="mdi-video"
+              :trend-data="[10, 20, 15, 25, 30]" class="rounded-xl" />
+          </v-col>
+          <v-col cols="12">
+            <MetricCard title="Total Reach" value="1.2M" icon="mdi-trending-up" :trend-data="[5, 15, 10, 20, 25]"
+              class="rounded-xl" />
+          </v-col>
+        </v-row>
+      </v-col>
+    </v-row>
 
       <v-row class="mt-2 d-flex">
         <v-col cols="12" md="4">
@@ -68,45 +103,41 @@
         </v-col>
       </v-row>
 
-      <div class="d-flex flex-wrap align-center my-6 ga-4">
-        <div class="text-h6 font-weight-bold">Internal Brand and Variants</div>
-        <v-spacer></v-spacer>
-        <v-sheet width="250" color="transparent">
-          <v-select v-model="selectedInternalBrand" density="compact" label="Select Brand" variant="outlined"
-            hide-details :items="masterBrandsInternal"></v-select>
-        </v-sheet>
-      </div>
+      <v-row class="mt-12">
+        <v-col cols="12">
+          <PageTitle title="Internal Brand and Variants" :show-date-filter="false" 
+            :enabled-filters="['brand']" @update:filter="handleSectionFilterUpdate" />
+        </v-col>
+      </v-row>
 
       <v-row class="mb-6" align="center">
-        <v-col cols="12" md="3">
+        <!-- <v-col cols="12" md="3">
           <v-row>
             <v-col v-for="card in variantMetricCards" :key="card.title" cols="12">
               <MetricCard :title="card.title" :value="card.value" :icon="card.icon" :color="card.color"
                 :trend-data="card.trendData" />
             </v-col>
           </v-row>
+        </v-col> -->
+        <v-col cols="12" md="12">
+          <HighlightsCarousel total-title="Variants Mentions" item-label="Variants" :show-total="true"
+            total-icon="mdi-domain" total-icon-color="primary" :total-value="carouselTotalValue"
+            :total-items-count="variantHighlights.length" :items="variantHighlights" :start-date="startDate"
+            :end-date="endDate" :show-modal="showModal" :selected-item="selectedItem" :active-video="videoList[0]"
+            :is-loading-detail="isVideoLoading" @close-modal="showModal = false" @item-click="handleItemClick" />
         </v-col>
-        <v-col cols="12" md="4">
+      </v-row>
+
+      <v-row class="mb-6">
+        <v-col cols="12" md="6">
           <PieChartCard title="All Brand's Variants" :data="variantPieData" :has-legend="true"
             :is-loading="isVariantLoading" />
         </v-col>
-        <v-col cols="12" md="5">
+        <v-col cols="12" md="6">
           <TableCard title="Variant's Ranking" :headers="['Brand Variant']" :rows="variantRankingData" :per-page="5"
             class="h-100" />
         </v-col>
 
-        
-      </v-row>
-
-      <v-row class="mb-6">
-        <v-col cols="12">
-          <HighlightsCarousel total-title="Variants Mentions" item-label="Variants" :show-total="true"
-            total-icon="mdi-domain" total-icon-color="primary" :total-value="carouselTotalValue"
-            :items="variantHighlights" :show-modal="showModal" :selected-item="selectedItem"
-            :active-video="videoList[0]" :is-loading-detail="isVideoLoading" @close-modal="showModal = false"
-            @item-click="handleItemClick" />
-        </v-col>
-        
       </v-row>
       <v-row class="mb-6">
         <v-col cols="12">
@@ -175,10 +206,44 @@ interface MetricCardItem {
   labels?: string[];
 }
 
+const topPrograms = ref([
+  { name: 'Ikatan Cinta', mention: '85%' },
+  { name: 'Preman Pensiun', mention: '72%' },
+  { name: 'Dahsyat', mention: '60%' },
+  { name: 'MasterChef Indonesia', mention: '55%' },
+  { name: 'Amanah Wali', mention: '48%' },
+]);
+
 const unileverAdsTrend = ref<number[]>([]);
 const brandsTrend = ref<number[]>([]);
 const variantsTrend = ref<number[]>([]);
 const categoriesTrend = ref<number[]>([]);
+const currentPageInternal = ref(0);
+const pageSize = 5;
+const isFetchingMore = ref(false);
+const rawInternalBrandsForHighlight = ref<any[]>([]);
+const myBrandHighlights = ref<any[]>([]);
+
+
+const handleFilterUpdate = (newFilters: any) => {
+  if (newFilters.channel) appStore.selectedChannels = newFilters.channel;
+  if (newFilters.brand) {
+    if (newFilters.brand.length > 0) {
+      selectedInternalBrand.value = newFilters.brand[0];
+    }
+  }
+};
+
+const handleSectionFilterUpdate = (payload: any) => {
+  // Payload dari PageTitle berbentuk { brand: ["Nama Brand"] }
+  if (payload && payload.brand && Array.isArray(payload.brand) && payload.brand.length > 0) {
+    // Kita ambil index ke-0 karena selectedInternalBrand butuh string tunggal
+    selectedInternalBrand.value = payload.brand[0] as string;
+  } else {
+    // Jika filter di-reset, balikkan ke default (brand pertama dari list)
+    selectedInternalBrand.value = masterBrandsInternal.value[0] || null;
+  }
+};
 
 
 const appStore = useAppStore();
@@ -195,8 +260,8 @@ const isVariantLoading = ref(true);
 const internalMetricCards = ref<MetricCardItem[]>([
   // Hapus properti color, atau set null/undefined
   { title: 'Total of Unilever Ads', value: '...', icon: 'mdi-chart-line', trendData: [] },
-  { title: 'Number of Brands', value: '...', icon: 'mdi-tag', trendData: [] },
-  { title: 'Number of Brand Variants', value: '...', icon: 'mdi-tag-multiple', trendData: [] },
+  { title: 'Total of Brands', value: '...', icon: 'mdi-tag', trendData: [] },
+  { title: 'Total of Brand Variants', value: '...', icon: 'mdi-tag-multiple', trendData: [] },
   { title: 'Total Category', value: '...', icon: 'mdi-shape-outline', trendData: [] },
 ]);
 
@@ -206,6 +271,9 @@ const rawInternalStackedBrandVarian = ref<StackedItem[]>([]);
 const masterBrandsInternal = ref<string[]>([]);
 const selectedInternalBrand = ref<string | null>(null);
 const carouselTotalValue = ref<number | string>('...');
+const totalUnileverAds = computed(() => {
+  return internalMetricCards.value[0]?.value || 0;
+});
 
 const variantMetricCards = ref<MetricCardItem[]>([
   { title: 'Total Brand Ads Detected', value: '...', icon: 'mdi-food-variant', color: 'purple', trendData: [] },
@@ -495,6 +563,13 @@ async function fetchGeneralData() {
       variantsTrend.value = processedTrend.map(v => Math.round(v / 2));
       categoriesTrend.value = processedTrend.map(v => Math.max(1, Math.round(v / 10)));
     }
+    if (topBrandData && Array.isArray(topBrandData)) {
+      rawInternalBrandsForHighlight.value = topBrandData;
+      myBrandHighlights.value = [];
+      currentPageInternal.value = 0;
+      // Load 3-5 item pertama sebagai inisialisasi
+      await fetchMoreInternalHighlights(0, 5);
+    }
 
     // UPDATE VARIABEL GLOBAL (Jangan pakai 'const' atau 'ref' lagi di sini)
     internalMetricCards.value = [
@@ -506,14 +581,14 @@ async function fetchGeneralData() {
         labels: processedLabels
       },
       {
-        title: 'Number of Brands',
+        title: 'Total of Brands',
         value: totalBrands?.total || 0,
         icon: 'mdi-tag',
         trendData: brandsTrend.value,
         labels: processedLabels
       },
       {
-        title: 'Number of Brand Variants',
+        title: 'Total of Variants',
         value: totalVariants?.total || 0,
         icon: 'mdi-tag-multiple',
         trendData: variantsTrend.value,
@@ -531,10 +606,82 @@ async function fetchGeneralData() {
     rawInternalTopBrand.value = transformApiResponse(topBrandData);
     rawInternalTrendBrand.value = trendBrandData || [];
     rawInternalStackedBrandVarian.value = stackedBrandVarianData || [];
-  } catch (error) {
+  }
+  catch (error) {
     console.error("Gagal load general data:", error);
   }
+
 }
+
+// Fungsi untuk memuat data lebih banyak saat carousel digeser/diklik next
+async function handleLoadMore() {
+  if (isFetchingMore.value) return;
+  const nextStartIndex = (currentPageInternal.value + 1) * pageSize;
+
+  if (myBrandHighlights.value.length <= nextStartIndex && nextStartIndex < rawInternalBrandsForHighlight.value.length) {
+    isFetchingMore.value = true;
+    await fetchMoreInternalHighlights(nextStartIndex, pageSize);
+    currentPageInternal.value++;
+    isFetchingMore.value = false;
+  } else if (nextStartIndex < rawInternalBrandsForHighlight.value.length) {
+    currentPageInternal.value++;
+  }
+}
+
+// Fungsi pembantu untuk mengambil video preview brand satu per satu
+async function fetchMoreInternalHighlights(startIndex: number, fetchLimit: number) {
+  const nextBatch = rawInternalBrandsForHighlight.value.slice(startIndex, startIndex + fetchLimit);
+  if (nextBatch.length === 0) return;
+
+  const detailedBatch = await Promise.all(
+    nextBatch.map(async (brand: any) => {
+      let previewVideo = '';
+      try {
+        const videoRes = await fetchData('list', {
+          group: [internalGroup.value],
+          brand: [brand.name]
+        });
+        if (videoRes?.data && videoRes.data.length > 0) {
+          previewVideo = videoRes.data[0].video_link;
+        }
+      } catch (e) {
+        console.error(`Gagal load video preview:`, e);
+      }
+      return {
+        name: brand.name,
+        count: brand.total || 0,
+        preview_video: previewVideo,
+        logo: createLogo(brand.name), // Menggunakan fungsi logo yang sudah ada di internal.vue
+      };
+    })
+  );
+  myBrandHighlights.value.push(...detailedBatch);
+}
+async function handleBrandClick(item: any) {
+  // item adalah data brand yang diklik dari carousel
+  selectedItem.value = item;
+  showModal.value = true;
+  videoList.value = [];
+  isVideoLoading.value = true;
+
+  try {
+    const filters = {
+      group: [internalGroup.value],
+      brand: [item.name] // Mencari video berdasarkan brand
+    };
+
+    const response = await fetchData('list', filters);
+
+    if (response && response.data && response.data.length > 0) {
+      videoList.value = response.data;
+    }
+  } catch (error) {
+    console.error("Gagal load video brand:", error);
+  } finally {
+    isVideoLoading.value = false;
+  }
+}
+
 async function fetchVariantData() {
   if (!selectedInternalBrand.value) {
     isVariantLoading.value = false;

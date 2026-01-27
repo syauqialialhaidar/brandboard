@@ -1,16 +1,15 @@
 <template>
   <v-container fluid class="pa-0">
 
-  <PageTitle title="General Analysis" subtitle="Comprehensive market overview and competitor tracking"
-    :show-channel-filter="true" :colorful="true" class="mb-6" />
+    <PageTitle title="General Analysis" />
 
-  <v-row class="mb-6">
-    <v-col v-for="(card, i) in metricCards" :key="card.title" cols="12" sm="6" lg="3">
-  <MetricCard v-bind="card" :index="i" class="h-100" />
-</v-col>
-  </v-row>
+    <v-row class="mb-6">
+      <v-col v-for="(card, i) in metricCards" :key="card.title" cols="12" sm="6" lg="3">
+        <MetricCard v-bind="card" :index="i" class="h-100" />
+      </v-col>
+    </v-row>
 
-  <!-- <v-row align="stretch" class="mb-8">
+    <!-- <v-row align="stretch" class="mb-8">
       <v-col cols="12" lg="4">
         <v-card 
           variant="flat" 
@@ -46,120 +45,173 @@
 
 
 
-  <v-row class="mb-8">
-    <v-col cols="12">
-     <HighlightsCarousel 
-  total-title="Internal Brands Mentions" 
-  item-label="Brands"
-  :items="myBrandHighlights" 
-  :total-items-count="rawInternalBrands.length"
-  :is-loading-more="isFetchingMore" 
-  :total-value="corporateTotal" 
-  
-  :start-date="startDate"
-  :end-date="endDate"
-  
-  :show-modal="showBrandModal"
-  :selected-item="selectedBrandData" 
-  :active-video="activeVideo" 
-  :is-loading-detail="isLoadingVideos"
-  @close-modal="showBrandModal = false" 
-  @next-page="handleLoadMore" 
-  @item-click="handleBrandClick" 
-/>
-    </v-col>
-  </v-row>
+    <v-row class="mb-8">
+      <v-col cols="12">
+        <HighlightsCarousel total-title="All Brands Mentions" item-label="All Brands" :items="allBrandHighlights"
+          :total-items-count="rawAllBrands.length" :is-loading-more="isFetchingMore" :total-value="totalAdsAllCorporate"
+          :start-date="startDate" :end-date="endDate" :show-modal="showBrandModal" :selected-item="selectedBrandData"
+          :active-video="activeVideo" :is-loading-detail="isLoadingVideos" @close-modal="showBrandModal = false"
+          @next-page="handleLoadMore" @item-click="handleBrandClick" />
+      </v-col>
+    </v-row>
 
-  <div class="d-flex align-center mb-4 ga-2">
-    <div class="text-h5 font-weight-bold">Overview & Ranking</div>
-  </div>
-
-  <v-row class="mb-8">
-    <v-col cols="12" lg="4">
-      <PieChartCard title="Corporate Distribution" :data="corporationPieData" :has-legend="true" :is-loading="isLoading"
-        class="h-100 rounded-xl" />
-    </v-col>
-    <v-col cols="12" lg="8">
-      <LineChartCard title="Corporation Trends" :labels="lineChartLabels" :data="lineChartDatasets" :show-toggle="true"
-        :toggle="lineChartToggle" @toggle-change="lineChartToggle = $event" :is-loading="isLoading"
-        class="h-100 rounded-xl" />
-    </v-col>
-  </v-row>
-
-  <v-card variant="flat" border class="pa-4 mb-6 rounded-xl bg-surface">
-    <div class="d-flex flex-wrap align-center ga-6">
-      <div class="text-subtitle-1 font-weight-bold text-medium-emphasis">View Analysis By:</div>
-      <v-btn-toggle v-model="analysisTab" density="comfortable" divided mandatory color="primary" variant="outlined"
-        class="rounded-lg">
-        <v-btn value="top10" class="text-capitalize px-6">Top 10</v-btn>
-        <v-btn value="all" class="text-capitalize px-6">All</v-btn>
-        <v-btn value="bottom10" class="text-capitalize px-6">Bottom 10</v-btn>
-      </v-btn-toggle>
-      <v-spacer></v-spacer>
-      <v-switch v-model="alwaysShowInternal" label="Highlight Our Company" color="primary" hide-details inset
-        density="compact"></v-switch>
+    <div class="d-flex align-center mb-4 ga-2">
+      <div class="text-h5 font-weight-bold">Trends & Ranking</div>
     </div>
+
+    <v-row class="mb-8">
+      <v-col cols="12" lg="4">
+        <PieChartCard title="Corporate Distribution" :data="corporationPieData" :has-legend="true"
+          :is-loading="isLoading" class="h-100 rounded-xl" />
+      </v-col>
+      <v-col cols="12" lg="8">
+        <LineChartCard title="Corporation Trends" :labels="lineChartLabels" :data="lineChartDatasets"
+          :show-toggle="true" :toggle="lineChartToggle" @toggle-change="lineChartToggle = $event"
+          :is-loading="isLoading" class="h-100 rounded-xl" />
+      </v-col>
+    </v-row>
+
+    <v-card variant="flat" border class="pa-4 mb-6 rounded-xl bg-surface">
+      <div class="d-flex flex-wrap align-center ga-6">
+        <div class="text-subtitle-1 font-weight-bold text-medium-emphasis">View Analysis By:</div>
+        <v-btn-toggle v-model="analysisTab" density="comfortable" divided mandatory color="primary" variant="outlined"
+          class="rounded-lg">
+          <v-btn value="top10" class="text-capitalize px-6">Top 10</v-btn>
+          <v-btn value="all" class="text-capitalize px-6">All</v-btn>
+          <v-btn value="bottom10" class="text-capitalize px-6">Bottom 10</v-btn>
+        </v-btn-toggle>
+        <v-spacer></v-spacer>
+        <v-switch v-model="alwaysShowInternal" label="Highlight Our Company" color="primary" hide-details inset
+          density="compact"></v-switch>
+      </div>
+    </v-card>
+
+    <v-row class="mb-8">
+      <v-col cols="12" md="4">
+        <TableCard title="Top Groups" :headers="['Name']" :rows="topGroups" class="h-100 rounded-xl" />
+      </v-col>
+      <v-col cols="12" md="4">
+        <TableCard title="Top Brands" :headers="['Name']" :rows="topBrands" class="h-100 rounded-xl" />
+      </v-col>
+      <v-col cols="12" md="4">
+        <TableCard title="Top Variants" :headers="['Name']" :rows="topVariants" class="h-100 rounded-xl" />
+      </v-col>
+    </v-row>
+
+
+    <v-row class="mb-8">
+      <v-col cols="12" lg="6">
+        <PieChartCard title="Gender Distribution" :data="genderPieData" :has-legend="true" :is-loading="isLoading"
+          suffix="%" class="h-100 rounded-xl" />
+      </v-col>
+      <v-col cols="12" md="6">
+        <BarChartCard title="Age Distribution" :data="ageBarData.data" :segment-labels="ageBarData.segments" suffix="%"
+          :is-loading="isLoading" class="h-100 rounded-xl" />
+      </v-col>
+    </v-row>
+
+    <v-row class="mb-8">
+      <v-col cols="12" md="4">
+        <TableCard title="Top Program RCTI" :headers="['Program Name']" :rows="topPrograms" :per-page="5"
+          class="h-100 rounded-xl" />
+      </v-col>
+
+      <v-col cols="12" md="4">
+        <TableCard title="Top Brand Ambasador" :headers="['Program Name']" :rows="topPrograms" :per-page="5"
+          class="h-100 rounded-xl" />
+      </v-col>
+
+      <v-col cols="12" md="4" class="d-flex flex-column">
+        <v-row>
+          <v-col cols="12">
+            <MetricCard title="Rate Card" :value="brandVideos.length" icon="mdi-video"
+              :trend-data="[10, 20, 15, 25, 30]" class="rounded-xl" />
+          </v-col>
+          <v-col cols="12">
+            <MetricCard title="Total Reach" value="1.2M" icon="mdi-trending-up" :trend-data="[5, 15, 10, 20, 25]"
+              class="rounded-xl" />
+          </v-col>
+        </v-row>
+      </v-col>
+    </v-row>
+    <!-- <v-row class="mt-4">
+      <v-col cols="12" md="6">
+        <HeatmapCard title="General Corporation Brand Distribution" :data="heatmapData" :is-loading="isLoading"
+          @item-click="handleHeatmapClick">
+          <template #append-header>
+            <v-btn-toggle v-model="barChartToggle" density="compact" divided mandatory>
+              <v-btn value="top10">Top 10</v-btn>
+              <v-btn value="all">All</v-btn>
+              <v-btn value="bottom10">Bottom 10</v-btn>
+            </v-btn-toggle>
+          </template>
+</HeatmapCard>
+</v-col>
+
+<v-col cols="12" md="6">
+  <v-card class="pa-0 pb-4 rounded-lg overflow-hidden d-flex flex-column h-100" color="surface">
+    <div class="d-flex align-center pa-4 ga-4">
+      <v-card-title class="text-subtitle-1 font-weight-bold pa-0">
+        Brand Detail:
+        <span class="text-primary">
+          {{ selectedGroupForDetail === 'ALL_DATA' ? 'All Corporations' : (selectedGroupForDetail ||
+          'SelectaCorporation') }}
+        </span>
+      </v-card-title>
+      <v-spacer></v-spacer>
+      <v-btn size="small" variant="tonal" color="primary" prepend-icon="mdi-view-grid"
+        class="text-capitalize font-weight-bold" @click="selectedGroupForDetail = 'ALL_DATA'">
+        View All
+      </v-btn>
+    </div>
+
+    <v-divider class="mb-4"></v-divider>
+
+    <v-card-text class="pa-4 flex-grow-1">
+      <div v-if="selectedGroupForDetail" class="h-100">
+        <BarChartCard title="" :data="detailedBarChartData.data" :segment-labels="detailedBarChartData.segments"
+          :show-toggle="false" :is-loading="isLoading" />
+      </div>
+      <div v-else class="d-flex align-center justify-center h-100 text-medium-emphasis flex-column py-10">
+        <v-icon size="64" class="mb-2 opacity-20">mdi-chart-bar</v-icon>
+        <p>Click a grid in the heatmap to see breakdown</p>
+      </div>
+    </v-card-text>
   </v-card>
+</v-col>
+</v-row> -->
 
-  <v-row class="mb-8">
-    <v-col cols="12" md="4">
-      <TableCard title="Top Groups" :headers="['Name']" :rows="topGroups" class="h-100 rounded-xl" />
-    </v-col>
-    <v-col cols="12" md="4">
-      <TableCard title="Top Brands" :headers="['Name']" :rows="topBrands" class="h-100 rounded-xl" />
-    </v-col>
-    <v-col cols="12" md="4">
-      <TableCard title="Top Variants" :headers="['Name']" :rows="topVariants" class="h-100 rounded-xl" />
-    </v-col>
-  </v-row>
+    <!-- <FilterComponent title="Product Filter" :levels="[
+      { key: 'group', label: 'Select Group', endpoint: 'top/brand' },
+      { key: 'brand', label: 'Select Brand', endpoint: 'top/varian' },
+      { key: 'variant', label: 'Select Variant' }
+    ]" @update:filter="(val) => console.log('General Filter:', val)" />
 
-  <div class="text-h5 font-weight-bold">Corporate Trends</div>
+    <v-row class="mb-6">
+      <v-col cols="12">
+        <MultiCard :stats="multiCardData" />
+      </v-col>
+    </v-row> -->
+    <!-- <v-row class="mb-8">
+      <v-col cols="12" lg="4">
+        <PieChartCard title="Scope Ads" :has-legend="true" :is-loading="isLoading" class="h-100 rounded-xl" />
+      </v-col>
+      <v-col cols="12" lg="8">
+        <LineChartCard title="Day to Day" :labels="lineChartLabels" :is-loading="isLoading" class="h-100 rounded-xl" />
+      </v-col>
+    </v-row> -->
 
-  <v-row class="mt-4">
-    <v-col cols="12" md="6">
-      <HeatmapCard title="General Corporation Brand Distribution" :data="heatmapData" :is-loading="isLoading"
-        @item-click="handleHeatmapClick">
-        <template #append-header>
-          <v-btn-toggle v-model="barChartToggle" density="compact" divided mandatory>
-            <v-btn value="top10">Top 10</v-btn>
-            <v-btn value="all">All</v-btn>
-            <v-btn value="bottom10">Bottom 10</v-btn>
-          </v-btn-toggle>
-        </template>
-      </HeatmapCard>
-    </v-col>
+    <!-- <v-row class="mb-8">
+      <v-col cols="12" md="6">
+        <TableCard title="Brands Ambasador" :headers="['Name']" :rows="topVariants" class="h-100 rounded-xl" />
+      </v-col>
+      <v-col cols="12" md="6">
+        <BarChartCard title="Tipe Ads" :is-loading="isLoading" class="h-100 rounded-xl" />
+      </v-col>
+    </v-row> -->
 
-    <v-col cols="12" md="6">
-      <v-card class="pa-0 pb-4 rounded-lg overflow-hidden d-flex flex-column h-100" color="surface">
-        <div class="d-flex align-center pa-4 ga-4">
-          <v-card-title class="text-subtitle-1 font-weight-bold pa-0">
-            Brand Detail:
-            <span class="text-primary">
-              {{ selectedGroupForDetail === 'ALL_DATA' ? 'All Corporations' : (selectedGroupForDetail || 'SelectaCorporation') }}
-            </span>
-          </v-card-title>
-          <v-spacer></v-spacer>
-          <v-btn size="small" variant="tonal" color="primary" prepend-icon="mdi-view-grid"
-            class="text-capitalize font-weight-bold" @click="selectedGroupForDetail = 'ALL_DATA'">
-            View All
-          </v-btn>
-        </div>
 
-        <v-divider class="mb-4"></v-divider>
 
-        <v-card-text class="pa-4 flex-grow-1">
-          <div v-if="selectedGroupForDetail" class="h-100">
-            <BarChartCard title="" :data="detailedBarChartData.data" :segment-labels="detailedBarChartData.segments"
-              :show-toggle="false" :is-loading="isLoading" />
-          </div>
-          <div v-else class="d-flex align-center justify-center h-100 text-medium-emphasis flex-column py-10">
-            <v-icon size="64" class="mb-2 opacity-20">mdi-chart-bar</v-icon>
-            <p>Click a grid in the heatmap to see breakdown</p>
-          </div>
-        </v-card-text>
-      </v-card>
-    </v-col>
-  </v-row>
   </v-container>
 </template>
 
@@ -172,6 +224,7 @@ import TableCard from '@/page-components/TableCard.vue';
 import PieChartCard from '@/page-components/PieChartCard.vue';
 import LineChartCard from '@/page-components/LineChartCard.vue';
 import BarChartCard from '@/page-components/BarChartCard.vue';
+import FilterComponent from '@/page-components/Filter.vue';
 import HeatmapCard from '@/page-components/HeatmapCard.vue';
 import BrandCarousel from '@/page-components/BrandCarousel.vue';
 import { generateBrightColors } from '@/utils/colors';
@@ -180,6 +233,9 @@ import { useAppStore } from '@/stores/app';
 import { storeToRefs } from 'pinia';
 import { fetchData } from '@/utils/apiBuilder';
 import unileverLogo from '@/assets/images/Unilever.png';
+
+import MultiCard from '@/page-components/MultiCard.vue';
+
 
 interface HighlightItem {
   logo: string;
@@ -231,6 +287,34 @@ interface MetricCardItem {
   trendData: number[];
   labels?: string[];
 }
+const rawInternalVariants = ref<any[]>([]);
+
+// ==========================================================Carousel
+const rawAllBrands = ref<any[]>([]); // Menyimpan semua data brand dari API
+const allBrandHighlights = ref<any[]>([]); // Menyimpan data yang sudah diproses untuk carousel
+const totalAdsAllCorporate = ref<number | string>(0);
+
+// ==========================================================DUmmmy
+const genderPieData = ref([
+  { label: 'Laki-laki', value: 65 },
+  { label: 'Perempuan', value: 35 },
+]);
+
+const ageBarData = ref({
+  segments: ['Anak-anak', 'Remaja', 'Dewasa'],
+  data: [
+    { label: 'Persentase', values: [20, 30, 50] }
+  ]
+});
+
+const topPrograms = ref([
+  { name: 'Ikatan Cinta', mention: '85%' },
+  { name: 'Preman Pensiun', mention: '72%' },
+  { name: 'Dahsyat', mention: '60%' },
+  { name: 'MasterChef Indonesia', mention: '55%' },
+  { name: 'Amanah Wali', mention: '48%' },
+]);
+
 
 const appStore = useAppStore();
 const {
@@ -287,6 +371,60 @@ const activeVideo = computed<VideoAdItem | null>(() => {
   return brandVideos.value?.length > 0 ? brandVideos.value[0] : null;
 });
 
+//----Comparison Filter State----
+const categories = ref<string[]>([]); // Data awal untuk dropdown pertama
+
+// --- LOGIKA FETCH DATA AWAL ---
+async function fetchInitialGroups() {
+  try {
+    const response = await fetchData('top/group');
+    if (response && Array.isArray(response)) {
+      // Ambil nama group untuk mengisi dropdown pertama
+      categories.value = response.map((item: any) => item.name).sort();
+    }
+  } catch (error) {
+    console.error("Gagal mengambil data group awal:", error);
+  }
+}
+
+// Tambahkan pemanggilan fetchInitialGroups di onMounted
+onMounted(async () => {
+  isLoading.value = true;
+  try {
+    await Promise.all([
+      fetchGlobalData(),
+      fetchTableData(),
+      fetchInitialGroups() // Tambahkan ini
+    ]);
+  } catch (error) {
+    console.error(error);
+  } finally {
+    isLoading.value = false;
+  }
+});
+
+// Update handle filter
+const handleFilterUpdate = (payload: any) => {
+  activeFilters.value = payload;
+  console.log('General Page Filter Updated:', payload);
+  // Di sini kamu bisa memanggil ulang fetchGlobalData() jika ingin grafik berubah saat difilter
+};
+
+const masterCorporateGroups = computed(() => {
+  if (!rawTableTopGroups.value || rawTableTopGroups.value.length === 0) return [];
+
+  // Map ke nama group dan sort abjad agar rapi
+  return rawTableTopGroups.value
+    .map((item) => item.name)
+    .sort();
+});
+
+
+
+// 1. TAMBAHKAN DEFINISI INI
+const multiCardData = ref<MetricCardItem[]>([]);
+
+
 // ==========================================================
 // LOGIC
 // ==========================================================
@@ -294,45 +432,47 @@ const activeVideo = computed<VideoAdItem | null>(() => {
 // 1. Pagination Logic
 async function handleLoadMore() {
   if (isFetchingMore.value) return;
+
   const nextStartIndex = (currentPageInternal.value + 1) * pageSize;
 
-  if (myBrandHighlights.value.length <= nextStartIndex && nextStartIndex < rawInternalBrands.value.length) {
+  // Ganti referensi pengecekan dari 'myBrandHighlights' ke 'allBrandHighlights'
+  if (allBrandHighlights.value.length <= nextStartIndex && nextStartIndex < rawAllBrands.value.length) {
     isFetchingMore.value = true;
-    await fetchMoreInternalBrands(nextStartIndex, pageSize);
+
+    // Panggil fetchMoreBrands (fungsi yang memproses data global)
+    await fetchMoreBrands(nextStartIndex, pageSize);
+
     currentPageInternal.value++;
     isFetchingMore.value = false;
-  } else if (nextStartIndex < rawInternalBrands.value.length) {
+  } else if (nextStartIndex < rawAllBrands.value.length) {
     currentPageInternal.value++;
   }
 }
 
-async function fetchMoreInternalBrands(startIndex: number, fetchLimit: number) {
-  const nextBatch = rawInternalBrands.value.slice(startIndex, startIndex + fetchLimit);
+async function fetchMoreBrands(startIndex: number, fetchLimit: number) {
+  const nextBatch = rawAllBrands.value.slice(startIndex, startIndex + fetchLimit);
   if (nextBatch.length === 0) return;
 
   const detailedBatch = await Promise.all(
     nextBatch.map(async (brand: any) => {
       let previewVideo = '';
       try {
-        const videoRes = await fetchData('list', {
-          group: [internalGroup.value],
-          brand: [brand.name]
-        });
+        // Ambil video tanpa filter group agar brand apapun bisa muncul videonya
+        const videoRes = await fetchData('list', { brand: [brand.name] });
         if (videoRes?.data && videoRes.data.length > 0) {
           previewVideo = videoRes.data[0].video_link;
         }
-      } catch (e) {
-        console.error(`Gagal load video untuk brand ${brand.name}:`, e);
-      }
+      } catch (e) { console.error(e); }
+
       return {
         name: brand.name,
         count: brand.total || 0,
         preview_video: previewVideo,
-        logo: '',
+        logo: '', // Anda bisa menambahkan logic mapping logo di sini
       };
     })
   );
-  myBrandHighlights.value.push(...detailedBatch);
+  allBrandHighlights.value.push(...detailedBatch);
 }
 
 // 2. Heatmap & Bar Logic
@@ -423,11 +563,12 @@ async function handleBrandClick(item: HighlightItem) {
   showBrandModal.value = true;
   brandVideos.value = [];
   isLoadingVideos.value = true;
+
   try {
     const specificFilter = {
-      group: [internalGroup.value],
       brand: [item.name]
     };
+
     const response = await fetchData('list', specificFilter);
     if (response && response.data) {
       brandVideos.value = response.data;
@@ -452,40 +593,39 @@ const processTableData = (rawData: TableRow[], sortMode: string, type: 'group' |
   if (!rawData || rawData.length === 0) return [];
   let dataCopy = [...rawData];
 
+  // 1. Sorting (tetap sama)
   if (sortMode === 'bottom10') {
     dataCopy.sort((a, b) => Number(a.mention) - Number(b.mention));
   } else {
     dataCopy.sort((a, b) => Number(b.mention) - Number(a.mention));
   }
 
-  let displayList: TableRow[];
-  if (sortMode === 'all') {
-    displayList = dataCopy;
-  } else {
-    displayList = dataCopy.slice(0, 10);
-  }
+  let displayList = sortMode === 'all' ? dataCopy : dataCopy.slice(0, 10);
 
-  // Always Show Internal Logic
+  // 2. Logika Identifikasi & Paksa Muncul (Highlight)
+  const isItemInternal = (name: string) => {
+    if (type === 'group') return name === internalGroup.value;
+    if (type === 'brand') return rawInternalBrands.value.some(b => b.name === name);
+    if (type === 'variant') return rawInternalVariants.value.some(v => v.name === name);
+    return false;
+  };
+
   if (alwaysShowInternal.value && sortMode === 'top10') {
-    const internalItem = dataCopy.find(item => {
-      if (type === 'group') return item.name === internalGroup.value;
-      return rawInternalBrands.value.some(b => b.name === item.name);
-    });
+    const internalItem = dataCopy.find(item => isItemInternal(item.name));
+
+    // Jika data kita ada tapi tidak masuk 10 besar, selipkan di urutan terakhir
     if (internalItem && !displayList.some(d => d.name === internalItem.name)) {
       displayList[9] = internalItem;
     }
   }
 
+  // 3. Mapping hasil akhir dengan flag isInternal
   return displayList.map((item) => {
     const actualRank = dataCopy.findIndex(d => d.name === item.name) + 1;
-    let isInternal = false;
-    if (alwaysShowInternal.value) {
-      if (type === 'group') {
-        isInternal = item.name === internalGroup.value;
-      } else {
-        isInternal = rawInternalBrands.value.some(b => b.name === item.name);
-      }
-    }
+
+    // Mark 'isInternal' hanya akan true jika switch ON DAN item tersebut memang internal
+    const isInternal = alwaysShowInternal.value ? isItemInternal(item.name) : false;
+
     return {
       ...item,
       rank: actualRank,
@@ -566,6 +706,18 @@ const lineChartLabels = computed(() => lineChartData.value.labels);
 const lineChartDatasets = computed(() => lineChartData.value.datasets);
 const top5CorporateAds = computed(() => corporateHighlights.value.slice(0, 5));
 
+const activeFilters = ref({
+  groups: [],
+  brands: [],
+  variants: []
+});
+
+function handleFilterChange(payload: any) {
+  activeFilters.value = payload;
+  // Di sini Anda bisa memanggil API fetch ulang berdasarkan filter baru
+  console.log('Filter updated:', payload);
+}
+
 // 6. API Fetching
 async function fetchGlobalData() {
   const internalFilter = { group: [internalGroup.value] };
@@ -573,15 +725,11 @@ async function fetchGlobalData() {
 
   try {
     const [
-      totalAds,
-      totalGroups,
-      totalBrands,
-      totalVariants,
-      totalAdsWithGroup,
-      chartTopGroupData,
-      chartTrendGroupData,
-      chartStackedGroupBrandData,
-      internalBrandData
+      totalAds, totalGroups, totalBrands, totalVariants,
+      totalAdsWithGroup, chartTopGroupData, chartTrendGroupData,
+      chartStackedGroupBrandData, allBrandData,
+      internalBrandsRes,   // Hasil dari top/brand
+      internalVariantsRes  // Hasil dari top/varian
     ] = await Promise.all([
       fetchData('total/ads'),
       fetchData('total/group'),
@@ -591,8 +739,18 @@ async function fetchGlobalData() {
       fetchData('top/group'),
       fetchData('trend/group'),
       fetchData('stacked/group/brand'),
-      fetchData('top/brand', internalFilter),
+      fetchData('top/brand'),
+      fetchData('top/brand', internalFilter), // Fetch brand kita
+      fetchData('top/varian', internalFilter) // Fetch varian kita
     ]);
+
+    // Assign ke State dengan benar
+    rawInternalBrands.value = internalBrandsRes || [];
+    rawInternalVariants.value = internalVariantsRes || [];
+
+    if (internalBrandsRes && Array.isArray(internalBrandsRes)) {
+      rawInternalBrands.value = internalBrandsRes;
+    }
 
     // --- PERBAIKAN LOGIKA TREND DATA ---
     let chartLabels: string[] = [];
@@ -663,15 +821,56 @@ async function fetchGlobalData() {
       },
     ];
 
+    multiCardData.value = [
+      {
+        title: 'Total Ads Frequency',
+        value: totalAds?.total || 0,
+        icon: 'mdi mdi-chart-line-variant',
+        trendData: adsTrendData.value,
+        labels: chartLabels
+      },
+      {
+        title: 'Total Spending',
+        value: totalGroups?.total || 0,
+        icon: 'mdi mdi-currency-usd',
+        trendData: groupsTrendData.value,
+        labels: chartLabels,
+      },
+      {
+        title: 'Total Audience Reach',
+        value: totalBrands?.total || 0,
+        icon: 'mdi mdi-account-group-outline',
+        trendData: brandsTrendData.value,
+        labels: chartLabels,
+
+      },
+      {
+        title: 'Total Programs',
+        value: totalVariants?.total || 0,
+        icon: 'mdi mdi-television-play',
+        trendData: variantsTrendData.value,
+        labels: chartLabels
+      },
+      {
+        title: 'Total Channels',
+        value: totalVariants?.total || 0,
+        icon: 'mdi-access-point',
+        trendData: variantsTrendData.value,
+        labels: chartLabels,
+
+      },
+    ];
+
     // D. UPDATE HIGHLIGHTS & LAINNYA
     corporateTotal.value = totalAdsWithGroup?.total || 0;
+    totalAdsAllCorporate.value = totalAds?.total || 0;
 
-    // Logika Pagination Internal Brand
-    if (internalBrandData && Array.isArray(internalBrandData)) {
-      rawInternalBrands.value = internalBrandData;
-      myBrandHighlights.value = [];
+    if (allBrandData && Array.isArray(allBrandData)) {
+      rawAllBrands.value = allBrandData;
+      allBrandHighlights.value = [];
       currentPageInternal.value = 0;
-      await fetchMoreInternalBrands(0, 3);
+      // Panggil fungsi load more untuk batch pertama (misal 5 brand pertama)
+      await fetchMoreBrands(0, 5);
     }
 
     // Logika Top 5 Competitor
@@ -738,6 +937,7 @@ watch([startDate, endDate, selectedChannels], async () => {
   finally { isLoading.value = false; }
 }, { deep: true });
 
+
 onMounted(async () => {
   isLoading.value = true;
   try {
@@ -794,5 +994,4 @@ onMounted(async () => {
 .z-index-2 {
   z-index: 2;
 }
-
 </style>
