@@ -45,7 +45,7 @@
 
 
 
-    <v-row class="mb-8">
+    <v-row class="mb-2">
       <v-col cols="12">
         <HighlightsCarousel total-title="All Brands Mentions" item-label="All Brands" :items="allBrandHighlights"
           :total-items-count="rawAllBrands.length" :is-loading-more="isFetchingMore" :total-value="totalAdsAllCorporate"
@@ -86,7 +86,7 @@
       </div>
     </v-card>
 
-    <v-row class="mb-8">
+    <v-row class="mb-2">
       <v-col cols="12" md="4">
         <TableCard title="Top Groups" :headers="['Name']" :rows="topGroups" class="h-100 rounded-xl" />
       </v-col>
@@ -98,42 +98,63 @@
       </v-col>
     </v-row>
 
+    <div class="d-flex align-center mb-4 ga-2">
+      <div class="text-h5 font-weight-bold">Audience Distributions</div>
+    </div>
 
-    <v-row class="mb-8">
-      <v-col cols="12" lg="6">
-        <PieChartCard title="Gender Distribution" :data="genderPieData" :has-legend="true" :is-loading="isLoading"
+    <v-row class="mb-2">
+      <v-col cols="12" md="4">
+        <PieChartCard title="Gender" :data="genderPieData" :has-legend="true" :is-loading="isLoading"
           suffix="%" class="h-100 rounded-xl" />
       </v-col>
-      <v-col cols="12" md="6">
-        <BarChartCard title="Age Distribution" :data="ageBarData.data" :segment-labels="ageBarData.segments" suffix="%"
+      <v-col cols="12" md="4">
+        <BarChartCard title="Age" :data="ageBarData.data" :segment-labels="ageBarData.segments" suffix="%"
           :is-loading="isLoading" class="h-100 rounded-xl" />
+      </v-col>
+      <v-col cols="12" md="4">
+        <PieChartCard title="Location" :data="locationPieData" :has-legend="true" :is-loading="isLoading"
+          class="h-100 rounded-xl" />
       </v-col>
     </v-row>
 
     <v-row class="mb-8">
       <v-col cols="12" md="4">
-        <TableCard title="Top Program RCTI" :headers="['Program Name']" :rows="topPrograms" :per-page="5"
+        <PieChartCard title="Zona Waktu" :data="timezonePieData" :has-legend="true" :is-loading="isLoading"
+          class="h-100 rounded-xl" />
+      </v-col>
+
+      <v-col cols="12" md="5">
+        <BarChartCard title="Scope Penyiaran" :data="scopeBarData.data" :segment-labels="scopeBarData.segments"
+          :is-loading="isLoading" class="h-100 rounded-xl" />
+      </v-col>
+
+      <v-col cols="12" md="3" class="d-flex flex-column ga-4">
+        <MetricCard title="Rate Card" :value="formattedRateCard" icon="mdi-cash-multiple" :trend-data="adsTrendData"
+          class="rounded-xl flex-grow-1" />
+        <MetricCard title="Total Reach" value="1.2M" icon="mdi-trending-up" :trend-data="[5, 15, 10, 20, 25]"
+          class="rounded-xl flex-grow-1" />
+      </v-col>
+    </v-row>
+
+
+    <v-row class="mb-8">
+      <v-col cols="12" md="4">
+        <TableCard title="Top Program" :headers="['Name']" :rows="topProgramsList" :per-page="5"
           class="h-100 rounded-xl" />
       </v-col>
 
       <v-col cols="12" md="4">
-        <TableCard title="Top Brand Ambasador" :headers="['Program Name']" :rows="topPrograms" :per-page="5"
+        <TableCard title="Top Brand Ambassador" :headers="['Name']" :rows="topAmbassadorsList" :per-page="5"
+          class="h-100 rounded-xl" />
+      </v-col>
+      <v-col cols="12" md="4">
+        <TableCard title="Programs Types" :headers="['Name']" :rows="topProgramsType" :per-page="5"
           class="h-100 rounded-xl" />
       </v-col>
 
-      <v-col cols="12" md="4" class="d-flex flex-column">
-        <v-row>
-          <v-col cols="12">
-            <MetricCard title="Rate Card" :value="brandVideos.length" icon="mdi-video"
-              :trend-data="[10, 20, 15, 25, 30]" class="rounded-xl" />
-          </v-col>
-          <v-col cols="12">
-            <MetricCard title="Total Reach" value="1.2M" icon="mdi-trending-up" :trend-data="[5, 15, 10, 20, 25]"
-              class="rounded-xl" />
-          </v-col>
-        </v-row>
-      </v-col>
     </v-row>
+
+
     <!-- <v-row class="mt-4">
       <v-col cols="12" md="6">
         <HeatmapCard title="General Corporation Brand Distribution" :data="heatmapData" :is-loading="isLoading"
@@ -289,6 +310,47 @@ interface MetricCardItem {
 }
 const rawInternalVariants = ref<any[]>([]);
 
+const rawTimezoneData = ref<any[]>([]);
+const rawScopeData = ref<any[]>([]);
+
+// --- DUMMY LOCATION DATA ---
+const dummyLocations = ref([
+  { name: 'Jakarta', total: 1250 },
+  { name: 'Surabaya', total: 980 },
+  { name: 'Bandung', total: 850 },
+  { name: 'Medan', total: 720 },
+  { name: 'Semarang', total: 610 },
+]);
+
+const locationPieData = computed<PieChartItem[]>(() => {
+  // Jika nanti pakai API, ganti dummyLocations.value dengan rawLocationData.value
+  return dummyLocations.value.map(item => ({
+    label: item.name,
+    value: Number(item.total)
+  }));
+});
+
+// --- COMPUTED PROPERTIES UNTUK CHART BARU ---
+
+// Zona Waktu (Pie) - Mapping dari /top/periode
+const timezonePieData = computed<PieChartItem[]>(() => {
+  return rawTimezoneData.value.map(item => ({
+    label: item.name || item.label,
+    value: Number(item.total || item.value) || 0
+  }));
+});
+
+// Scope Penyiaran (Bar) - Mapping dari /top/scope
+const scopeBarData = computed(() => {
+  const labels = rawScopeData.value.map(item => item.name || item.label);
+  const values = rawScopeData.value.map(item => Number(item.total || item.value) || 0);
+
+  return {
+    segments: labels,
+    data: [{ label: 'Total Ads', values: values }]
+  };
+});
+
 // ==========================================================Carousel
 const rawAllBrands = ref<any[]>([]); // Menyimpan semua data brand dari API
 const allBrandHighlights = ref<any[]>([]); // Menyimpan data yang sudah diproses untuk carousel
@@ -307,13 +369,50 @@ const ageBarData = ref({
   ]
 });
 
-const topPrograms = ref([
-  { name: 'Ikatan Cinta', mention: '85%' },
-  { name: 'Preman Pensiun', mention: '72%' },
-  { name: 'Dahsyat', mention: '60%' },
-  { name: 'MasterChef Indonesia', mention: '55%' },
-  { name: 'Amanah Wali', mention: '48%' },
-]);
+//==========================================================Top Programs 
+const rawProgramType = ref<TableRow[]>([]);
+const rawTopPrograms = ref<TableRow[]>([]);
+const rawTopAmbassadors = ref<TableRow[]>([]);
+const totalRateCard = ref<number | string>(0);
+
+// ---------------------------------------------------------
+// 3. TAMBAHKAN Computed Properties untuk Display
+// ---------------------------------------------------------
+// Mengambil 5 teratas untuk Program
+const processSimpleTopList = (data: TableRow[], limit: number = 5): TableRow[] => {
+  // 1. Copy & Sort dari terbesar
+  return [...data]
+    .sort((a, b) => Number(b.mention) - Number(a.mention))
+    .map((item, index) => ({
+      name: item.name,
+      mention: item.mention,
+      rank: index + 1,
+      isInternal: false
+    }));
+};
+
+// --- Computed Properties Baru ---
+// Kita tambahkan <TableRow[]> agar TypeScript yakin tipe datanya benar
+const topProgramsType = computed<TableRow[]>(() => {
+  return processSimpleTopList(rawProgramType.value);
+});
+
+const topProgramsList = computed<TableRow[]>(() => {
+  return processSimpleTopList(rawTopPrograms.value);
+});
+
+const topAmbassadorsList = computed<TableRow[]>(() => {
+  return processSimpleTopList(rawTopAmbassadors.value);
+});
+// Format Rate Card (Opsional: Format mata uang)
+const formattedRateCard = computed(() => {
+  const val = Number(totalRateCard.value);
+  if (isNaN(val)) return 0;
+  // Format ke Rupiah Singkat (Jt/M) atau angka biasa
+  if (val >= 1000000000) return (val / 1000000000).toFixed(1) + 'M';
+  if (val >= 1000000) return (val / 1000000).toFixed(1) + 'Jt';
+  return val.toLocaleString('id-ID');
+});
 
 
 const appStore = useAppStore();
@@ -358,7 +457,7 @@ const groupsTrendData = ref<number[]>([]);
 const brandsTrendData = ref<number[]>([]);
 const variantsTrendData = ref<number[]>([]);
 const metricCards = ref<MetricCardItem[]>([
-  { title: 'Total Brand Ads', value: '...', icon: 'mdi-chart-line', trendData: [] },
+  { title: 'Rate Card', value: '...', icon: 'mdi-cash-multiple', trendData: [] }, // Diubah
   { title: 'Total Corporates', value: '...', icon: 'mdi-domain', trendData: [] },
   { title: 'Total Brands', value: '...', icon: 'mdi-tag', trendData: [] },
   { title: 'Total Brand Variants', value: '...', icon: 'mdi-tag-multiple', trendData: [] },
@@ -393,7 +492,6 @@ onMounted(async () => {
   try {
     await Promise.all([
       fetchGlobalData(),
-      fetchTableData(),
       fetchInitialGroups() // Tambahkan ini
     ]);
   } catch (error) {
@@ -724,12 +822,26 @@ async function fetchGlobalData() {
   isLoading.value = true;
 
   try {
+    // 1. FETCH SEMUA DATA SECARA PARALEL (15 Request Sekaligus)
     const [
-      totalAds, totalGroups, totalBrands, totalVariants,
-      totalAdsWithGroup, chartTopGroupData, chartTrendGroupData,
-      chartStackedGroupBrandData, allBrandData,
-      internalBrandsRes,   // Hasil dari top/brand
-      internalVariantsRes  // Hasil dari top/varian
+      totalAds,                   // Metric Card: Total Ads
+      totalGroups,                // Metric Card: Total Corporate
+      totalBrands,                // Metric Card: Total Brand
+      totalVariants,              // Metric Card: Total Variants
+      totalAdsWithGroup,          // Carousel Header (Internal)
+      topGroupsRes,               // Data untuk: Chart Group & Table Top Groups
+      chartTrendGroupData,        // Data untuk: Line Chart
+      chartStackedGroupBrandData, // Data untuk: Bar Chart Details
+      topBrandsRes,               // Data untuk: Carousel & Table Top Brands
+      internalBrandsRes,          // Logic Highlight (Internal Brand)
+      internalVariantsRes,        // Logic Highlight (Internal Variant)
+      rateCardRes,                // Metric Card: Rate Card (BARU)
+      topVariantsRes,             // Table: Top Variants
+      topProgramData,             // Table: Top Program (BARU)
+      topAmbassadorData,
+      topProgramTypeData,
+      timezoneRes, // Hit ke 'top/periode'
+      scopeRes
     ] = await Promise.all([
       fetchData('total/ads'),
       fetchData('total/group'),
@@ -740,63 +852,62 @@ async function fetchGlobalData() {
       fetchData('trend/group'),
       fetchData('stacked/group/brand'),
       fetchData('top/brand'),
-      fetchData('top/brand', internalFilter), // Fetch brand kita
-      fetchData('top/varian', internalFilter) // Fetch varian kita
+      fetchData('top/brand', internalFilter),
+      fetchData('top/varian', internalFilter),
+      fetchData('total/rate'),
+      fetchData('top/varian'),
+      fetchData('top/program'),
+      fetchData('top/brand_ambassador'),
+      fetchData('top/program_type'),
+      fetchData('top/periode'),
+      fetchData('top/scope')
     ]);
 
-    // Assign ke State dengan benar
+    // 2. ASSIGN DATA DASAR (Rate Card & Internal Check)
+    totalRateCard.value = rateCardRes?.total || 0;
+
     rawInternalBrands.value = internalBrandsRes || [];
     rawInternalVariants.value = internalVariantsRes || [];
-
     if (internalBrandsRes && Array.isArray(internalBrandsRes)) {
       rawInternalBrands.value = internalBrandsRes;
     }
 
-    // --- PERBAIKAN LOGIKA TREND DATA ---
+    // 3. LOGIKA TREND CHART & METRIC CARDS
     let chartLabels: string[] = [];
     let filledTrendData: number[] = [];
 
-    // 1. Selalu generate range tanggal dulu berdasarkan filter
+    // Generate tanggal lengkap (Start - End)
     const dateRangeObj = generateDateRange(startDate.value, endDate.value);
     chartLabels = dateRangeObj.labels;
 
+    // Mapping data trend ke tanggal lengkap
     if (chartTrendGroupData && Array.isArray(chartTrendGroupData)) {
-      // 2. Mapping data API ke Dictionary
       const dailyMap: Record<string, number> = {};
       chartTrendGroupData.forEach((item: any) => {
-        const d = item.date; // format YYYY-MM-DD
+        const d = item.date;
         if (!dailyMap[d]) dailyMap[d] = 0;
         dailyMap[d] += (Number(item.total) || 0);
       });
-
-      // 3. Mapping ke tanggal lengkap (isi 0 jika kosong)
-      filledTrendData = dateRangeObj.apiDates.map(dateStr => {
-        return dailyMap[dateStr] || 0;
-      });
-
+      filledTrendData = dateRangeObj.apiDates.map(dateStr => dailyMap[dateStr] || 0);
     } else {
-      // Fallback jika data kosong: isi array 0 sepanjang tanggal
       filledTrendData = new Array(chartLabels.length).fill(0);
     }
 
-    // 4. Assign ke variabel State
     adsTrendData.value = filledTrendData;
 
-    // (Dummy Logic untuk data lain agar grafik tetap jalan & sinkron tanggalnya)
-    // Jika nanti ada API real untuk trend brands/groups, ganti logika ini.
+    // (Dummy trend logic untuk metric lain, sesuaikan jika ada API real)
     groupsTrendData.value = filledTrendData.map(v => Math.round(v * 0.4));
     brandsTrendData.value = [...filledTrendData].reverse();
     variantsTrendData.value = filledTrendData.map(v => Math.floor(v * 0.8));
-    // -----------------------------------
 
-    // Mapping ulang ke metricCards
+    // Update Metric Cards Array
     metricCards.value = [
       {
-        title: 'Total Brand Ads',
-        value: totalAds?.total || 0,
+        title: 'Total Brand Metions',
+        value: totalAds?.total || 0, // Kembali ke Total Ads
         icon: 'mdi-chart-line',
         trendData: adsTrendData.value,
-        labels: chartLabels // Label dikirim ke sini
+        labels: chartLabels
       },
       {
         title: 'Total Corporates',
@@ -822,60 +933,28 @@ async function fetchGlobalData() {
     ];
 
     multiCardData.value = [
-      {
-        title: 'Total Ads Frequency',
-        value: totalAds?.total || 0,
-        icon: 'mdi mdi-chart-line-variant',
-        trendData: adsTrendData.value,
-        labels: chartLabels
-      },
-      {
-        title: 'Total Spending',
-        value: totalGroups?.total || 0,
-        icon: 'mdi mdi-currency-usd',
-        trendData: groupsTrendData.value,
-        labels: chartLabels,
-      },
-      {
-        title: 'Total Audience Reach',
-        value: totalBrands?.total || 0,
-        icon: 'mdi mdi-account-group-outline',
-        trendData: brandsTrendData.value,
-        labels: chartLabels,
-
-      },
-      {
-        title: 'Total Programs',
-        value: totalVariants?.total || 0,
-        icon: 'mdi mdi-television-play',
-        trendData: variantsTrendData.value,
-        labels: chartLabels
-      },
-      {
-        title: 'Total Channels',
-        value: totalVariants?.total || 0,
-        icon: 'mdi-access-point',
-        trendData: variantsTrendData.value,
-        labels: chartLabels,
-
-      },
+      { title: 'Total Ads Frequency', value: totalAds?.total || 0, icon: 'mdi mdi-chart-line-variant', trendData: adsTrendData.value, labels: chartLabels },
+      { title: 'Total Spending', value: totalGroups?.total || 0, icon: 'mdi mdi-currency-usd', trendData: groupsTrendData.value, labels: chartLabels },
+      { title: 'Total Audience Reach', value: totalBrands?.total || 0, icon: 'mdi mdi-account-group-outline', trendData: brandsTrendData.value, labels: chartLabels },
+      { title: 'Total Programs', value: totalVariants?.total || 0, icon: 'mdi mdi-television-play', trendData: variantsTrendData.value, labels: chartLabels },
+      { title: 'Total Channels', value: totalVariants?.total || 0, icon: 'mdi-access-point', trendData: variantsTrendData.value, labels: chartLabels },
     ];
 
-    // D. UPDATE HIGHLIGHTS & LAINNYA
+    // 4. LOGIKA CAROUSEL (HIGHLIGHTS)
     corporateTotal.value = totalAdsWithGroup?.total || 0;
     totalAdsAllCorporate.value = totalAds?.total || 0;
 
-    if (allBrandData && Array.isArray(allBrandData)) {
-      rawAllBrands.value = allBrandData;
+    if (topBrandsRes && Array.isArray(topBrandsRes)) {
+      rawAllBrands.value = topBrandsRes;
       allBrandHighlights.value = [];
       currentPageInternal.value = 0;
-      // Panggil fungsi load more untuk batch pertama (misal 5 brand pertama)
+      // Load batch pertama carousel
       await fetchMoreBrands(0, 5);
     }
 
-    // Logika Top 5 Competitor
-    if (chartTopGroupData && Array.isArray(chartTopGroupData)) {
-      const top5Groups = [...chartTopGroupData]
+    // 5. LOGIKA TOP 5 COMPETITOR (Dengan Preview Video)
+    if (topGroupsRes && Array.isArray(topGroupsRes)) {
+      const top5Groups = [...topGroupsRes]
         .sort((a: any, b: any) => (b.total || 0) - (a.total || 0))
         .slice(0, 5);
 
@@ -898,9 +977,23 @@ async function fetchGlobalData() {
       );
     }
 
-    rawChartTopGroups.value = transformApiResponse(chartTopGroupData);
+    // 6. LOGIKA CHARTS
+    rawChartTopGroups.value = transformApiResponse(topGroupsRes);
     rawChartTrendGroup.value = chartTrendGroupData || [];
     rawChartStackedGroupBrand.value = chartStackedGroupBrandData || [];
+
+    // 7. LOGIKA TABEL (Menggunakan Helper transformApiResponse)
+    rawTableTopGroups.value = transformApiResponse(topGroupsRes);
+    rawTableTopBrands.value = transformApiResponse(topBrandsRes);
+    rawTableTopVariants.value = transformApiResponse(topVariantsRes);
+
+    // --> Tabel Baru: Program & Ambassador
+    rawTopPrograms.value = transformApiResponse(topProgramData);
+    rawTopAmbassadors.value = transformApiResponse(topAmbassadorData);
+    rawProgramType.value = transformApiResponse(topProgramTypeData);
+
+    rawTimezoneData.value = timezoneRes || [];
+    rawScopeData.value = scopeRes || [];
 
   } catch (error) {
     console.error('Gagal mengambil data global dashboard:', error);
@@ -909,42 +1002,21 @@ async function fetchGlobalData() {
   }
 }
 
-async function fetchTableData() {
-  try {
-    const [topGroupData, topBrandData, topVarianData] = await Promise.all([
-      fetchData('top/group'),
-      fetchData('top/brand'),
-      fetchData('top/varian'),
-    ]);
-    rawTableTopGroups.value = transformApiResponse(topGroupData);
-    rawTableTopBrands.value = transformApiResponse(topBrandData);
-    rawTableTopVariants.value = transformApiResponse(topVarianData);
-  } catch (error) {
-    console.error('Failed to update table data:', error);
-    rawTableTopGroups.value = [];
-    rawTableTopBrands.value = [];
-    rawTableTopVariants.value = [];
-  }
-}
-
-watch([startDate, endDate, selectedChannels], async () => {
-  isLoading.value = true;
-  adsTrendData.value = [];
-  currentPageInternal.value = 0;
-  try {
-    await Promise.all([fetchGlobalData(), fetchTableData()]);
-  } catch (error) { console.error(error); }
-  finally { isLoading.value = false; }
-}, { deep: true });
-
 
 onMounted(async () => {
-  isLoading.value = true;
-  try {
-    await Promise.all([fetchGlobalData(), fetchTableData()]);
-  } catch (error) { console.error(error); }
-  finally { isLoading.value = false; }
+  // Hanya panggil fetchGlobalData dan fetchInitialGroups (dropdown)
+  await Promise.all([
+    fetchGlobalData(),
+    fetchInitialGroups()
+  ]);
 });
+
+// Update Watch
+watch([startDate, endDate, selectedChannels], async () => {
+  adsTrendData.value = [];
+  currentPageInternal.value = 0;
+  await fetchGlobalData(); // Cukup panggil ini
+}, { deep: true });
 </script>
 
 <style scoped>

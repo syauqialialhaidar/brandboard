@@ -44,7 +44,7 @@
 
       <v-row class="mb-8">
       <v-col cols="12" md="4">
-        <TableCard title="Top Program RCTI" :headers="['Program Name']" :rows="topPrograms" :per-page="5"
+        <TableCard title="Top Program" :headers="['Program Name']" :rows="topPrograms" :per-page="5"
           class="h-100 rounded-xl" />
       </v-col>
 

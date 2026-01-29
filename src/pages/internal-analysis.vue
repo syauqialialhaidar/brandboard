@@ -1,15 +1,12 @@
 <template>
   <v-container fluid class="pa-0">
     <PageTitle title="Internal Analysis" only-internal
-      :enabled-filters="['channel', 'kategori', 'sub_kategori']"
+      :enabled-filters="['channel', 'brand', 'variants', 'kategori', 'sub_kategori']"
       @update:filter="handleFilterUpdate" />
     <div>
-
-      <h2 class="text-h6 font-weight-bold mb-4">General Internal</h2>
-
       <v-dialog v-model="showModal" max-width="800">
         <v-card class="rounded-xl pa-4">
-          <v-card-title class="d-flex justify-space-between align-center">
+          <v-card-title class="d-flex justify-sapace-between align-center">
             <span>Detail Varian: {{ selectedItem?.name }}</span>
             <v-btn icon="mdi-close" variant="text" @click="showModal = false"></v-btn>
           </v-card-title>
@@ -20,20 +17,17 @@
                 <div v-if="isVideoLoading">
                   <v-progress-circular indeterminate color="white"></v-progress-circular>
                 </div>
-
                 <div v-else-if="videoList.length > 0" class="w-100 h-100">
                   <video :key="videoList[0].video_link" controls width="100%" :src="videoList[0].video_link"
                     class="rounded-lg" autoplay>
                     Your browser does not support the video tag.
                   </video>
                 </div>
-
                 <div v-else class="text-white d-flex flex-column align-center">
                   <v-icon size="48" color="grey">mdi-video-off</v-icon>
                   <p>Video tidak tersedia untuk varian ini</p>
                 </div>
               </v-col>
-
               <v-col cols="12" md="5">
                 <h2 class="text-h5 font-weight-bold">{{ selectedItem?.name }}</h2>
               </v-col>
@@ -41,7 +35,6 @@
           </v-card-text>
         </v-card>
       </v-dialog>
-
       <v-row>
         <v-col v-for="(card, i) in internalMetricCards" :key="card.title" cols="12" sm="6" md="3">
           <MetricCard :title="card.title" :value="card.value" :icon="card.icon" :index="i" :trend-data="card.trendData"
@@ -56,35 +49,12 @@
             @item-click="handleBrandClick" />
         </v-col>
       </v-row>
-      
-      <v-row class="mb-8">
-      <v-col cols="12" md="4">
-        <TableCard title="Top Program RCTI" :headers="['Program Name']" :rows="topPrograms" :per-page="5"
-          class="h-100 rounded-xl" />
-      </v-col>
 
-      <v-col cols="12" md="4">
-        <TableCard title="Top Brand Ambasador" :headers="['Program Name']" :rows="topPrograms" :per-page="5"
-          class="h-100 rounded-xl" />
-      </v-col>
-
-      <v-col cols="12" md="4" class="d-flex flex-column">
-        <v-row>
-          <v-col cols="12">
-            <MetricCard title="Rate Card" value="3.m" icon="mdi-video"
-              :trend-data="[10, 20, 15, 25, 30]" class="rounded-xl" />
-          </v-col>
-          <v-col cols="12">
-            <MetricCard title="Total Reach" value="1.2M" icon="mdi-trending-up" :trend-data="[5, 15, 10, 20, 25]"
-              class="rounded-xl" />
-          </v-col>
-        </v-row>
-      </v-col>
-    </v-row>
+      <h2 class="text-h6 font-weight-bold mb-4">Brands Distributions</h2>
 
       <v-row class="mt-2 d-flex">
         <v-col cols="12" md="4">
-          <PieChartCard title="Internal Brand Distribution Pie" :data="internalPieData" :has-legend="true"
+          <PieChartCard title="Internal Brand" :data="internalPieData" :has-legend="true"
             :is-loading="isGeneralLoading" />
         </v-col>
         <v-col cols="12" md="8">
@@ -98,15 +68,8 @@
           <TableCard title="Internal Brand Ranking" :headers="['Brand']" :rows="internalBrandRanking" :per-page="5" />
         </v-col>
         <v-col cols="12" md="8">
-          <BarChartCard title="Unilever Brand Variants Distribution" :data="variantDistributionData"
+          <BarChartCard title="Internal Brand Variants Distribution" :data="variantDistributionData"
             :segment-labels="variantDistributionSegments" :is-loading="isGeneralLoading" />
-        </v-col>
-      </v-row>
-
-      <v-row class="mt-12">
-        <v-col cols="12">
-          <PageTitle title="Internal Brand and Variants" :show-date-filter="false" 
-            :enabled-filters="['brand']" @update:filter="handleSectionFilterUpdate" />
         </v-col>
       </v-row>
 
@@ -119,13 +82,7 @@
             </v-col>
           </v-row>
         </v-col> -->
-        <v-col cols="12" md="12">
-          <HighlightsCarousel total-title="Variants Mentions" item-label="Variants" :show-total="true"
-            total-icon="mdi-domain" total-icon-color="primary" :total-value="carouselTotalValue"
-            :total-items-count="variantHighlights.length" :items="variantHighlights" :start-date="startDate"
-            :end-date="endDate" :show-modal="showModal" :selected-item="selectedItem" :active-video="videoList[0]"
-            :is-loading-detail="isVideoLoading" @close-modal="showModal = false" @item-click="handleItemClick" />
-        </v-col>
+        
       </v-row>
 
       <v-row class="mb-6">
@@ -145,7 +102,64 @@
             :is-loading="isVariantLoading" />
         </v-col>
       </v-row>
+      <v-row class="mb-8">
+        <v-col cols="12" md="12">
+          <HighlightsCarousel total-title="Variants Mentions" item-label="Variants" :show-total="true"
+            total-icon="mdi-domain" total-icon-color="primary" :total-value="carouselTotalValue"
+            :total-items-count="variantHighlights.length" :items="variantHighlights" :start-date="startDate"
+            :end-date="endDate" :show-modal="showModal" :selected-item="selectedItem" :active-video="videoList[0]"
+            :is-loading-detail="isVideoLoading" @close-modal="showModal = false" @item-click="handleItemClick" />
+        </v-col>
+      </v-row>
+      
+      <v-row class="mb-2">
+        <v-col cols="12" md="4">
+          <TableCard title="Top Program" :headers="['Program Name']" :rows="topPrograms" :per-page="5"
+            class="h-100 rounded-xl" />
+        </v-col>
+
+        <v-col cols="12" md="4">
+          <TableCard title="Top Brand Ambasador" :headers="['Program Name']" :rows="topPrograms" :per-page="5"
+            class="h-100 rounded-xl" />
+        </v-col>
+
+        <v-col cols="12" md="4" class="d-flex flex-column">
+          <v-row>
+            <v-col cols="12">
+              <MetricCard title="Rate Card" value="3.m" icon="mdi-video" :trend-data="[10, 20, 15, 25, 30]"
+                class="rounded-xl" />
+            </v-col>
+            <v-col cols="12">
+              <MetricCard title="Total Reach" value="1.2M" icon="mdi-trending-up" :trend-data="[5, 15, 10, 20, 25]"
+                class="rounded-xl" />
+            </v-col>
+          </v-row>
+        </v-col>
+      </v-row>
+      <h2 class="text-h6 font-weight-bold mb-4">Distributions</h2>
+      <v-row class="mb-2">
+        <v-col cols="12" md="4">
+          <PieChartCard title="Gender" :data="dummyGenderData" :has-legend="true" suffix="%" />
+        </v-col>
+        <v-col cols="12" md="4">
+          <BarChartCard title="Age" :data="dummyAgeData.data" :segment-labels="dummyAgeData.segments" suffix="%" />
+        </v-col>
+        <v-col cols="12" md="4">
+          <PieChartCard title="Location" :data="dummyLocationData" :has-legend="true" />
+        </v-col>
+        <v-col cols="12" md="4">
+          <PieChartCard title="Zone Time" :data="dummyTimezoneData" :has-legend="true" suffix="%" />
+        </v-col>
+        <v-col cols="12" md="4">
+          <BarChartCard title="Scope" :data="dummyScopeData.data" :segment-labels="dummyScopeData.segments" />
+        </v-col>
+        <v-col cols="12" md="4">
+          <TableCard title="Program Types" :headers="['Type Name', 'Mention']" :rows="dummyProgramType" :per-page="5"
+            class="rounded-xl" />
+        </v-col>
+      </v-row>
     </div>
+
   </v-container>
 </template>
 
@@ -206,6 +220,48 @@ interface MetricCardItem {
   labels?: string[];
 }
 
+// --- DATA DUMMY BARU ---
+
+const dummyGenderData = ref([
+  { label: 'Female', value: 60 },
+  { label: 'Male', value: 40 },
+]);
+
+const dummyAgeData = ref({
+  segments: ['Kids (0-12)', 'Teens (13-18)', 'Adults (19-45)', 'Seniors (45+)'],
+  data: [
+    { label: 'Audience Share', values: [15, 25, 45, 15] }
+  ]
+});
+
+const dummyLocationData = ref([
+  { label: 'Jawa Barat', value: 350 },
+  { label: 'DKI Jakarta', value: 300 },
+  { label: 'Jawa Timur', value: 200 },
+  { label: 'Jawa Tengah', value: 150 },
+]);
+
+const dummyTimezoneData = ref([
+  { label: 'WIB', value: 80 },
+  { label: 'WITA', value: 15 },
+  { label: 'WIT', value: 5 },
+]);
+
+const dummyScopeData = ref({
+  segments: ['National', 'Regional', 'Local'],
+  data: [
+    { label: 'Total Ads', values: [70, 20, 10] }
+  ]
+});
+
+const dummyProgramType = ref([
+  { name: 'Drama/Soap Opera', mention: '450' },
+  { name: 'Variety Show', mention: '320' },
+  { name: 'News', mention: '150' },
+  { name: 'Sports', mention: '80' },
+  { name: 'Movies', mention: '60' },
+]);
+
 const topPrograms = ref([
   { name: 'Ikatan Cinta', mention: '85%' },
   { name: 'Preman Pensiun', mention: '72%' },
@@ -213,6 +269,10 @@ const topPrograms = ref([
   { name: 'MasterChef Indonesia', mention: '55%' },
   { name: 'Amanah Wali', mention: '48%' },
 ]);
+
+const selectedCategory = ref<string[]>([]);
+const selectedSubCategory = ref<string[]>([]);
+const selectedVariants = ref<string[]>([]);
 
 const unileverAdsTrend = ref<number[]>([]);
 const brandsTrend = ref<number[]>([]);
@@ -226,23 +286,16 @@ const myBrandHighlights = ref<any[]>([]);
 
 
 const handleFilterUpdate = (newFilters: any) => {
+  // Channel (Store)
   if (newFilters.channel) appStore.selectedChannels = newFilters.channel;
-  if (newFilters.brand) {
-    if (newFilters.brand.length > 0) {
-      selectedInternalBrand.value = newFilters.brand[0];
-    }
-  }
-};
+  
+  // Brand (Local)
+  if (newFilters.brand) selectedInternalBrand.value = newFilters.brand;
 
-const handleSectionFilterUpdate = (payload: any) => {
-  // Payload dari PageTitle berbentuk { brand: ["Nama Brand"] }
-  if (payload && payload.brand && Array.isArray(payload.brand) && payload.brand.length > 0) {
-    // Kita ambil index ke-0 karena selectedInternalBrand butuh string tunggal
-    selectedInternalBrand.value = payload.brand[0] as string;
-  } else {
-    // Jika filter di-reset, balikkan ke default (brand pertama dari list)
-    selectedInternalBrand.value = masterBrandsInternal.value[0] || null;
-  }
+  // Filter Tambahan (Pastikan nama key sesuai dengan yang di-emit PageTitle)
+  if (newFilters.kategori) selectedCategory.value = newFilters.kategori;
+  if (newFilters.sub_kategori) selectedSubCategory.value = newFilters.sub_kategori;
+  if (newFilters.variants) selectedVariants.value = newFilters.variants; // Biasanya key dari component adalah 'variants'
 };
 
 
@@ -259,7 +312,7 @@ const isVariantLoading = ref(true);
 
 const internalMetricCards = ref<MetricCardItem[]>([
   // Hapus properti color, atau set null/undefined
-  { title: 'Total of Unilever Ads', value: '...', icon: 'mdi-chart-line', trendData: [] },
+  { title: 'Total Unilever Ads', value: '...', icon: 'mdi-chart-line', trendData: [] },
   { title: 'Total of Brands', value: '...', icon: 'mdi-tag', trendData: [] },
   { title: 'Total of Brand Variants', value: '...', icon: 'mdi-tag-multiple', trendData: [] },
   { title: 'Total Category', value: '...', icon: 'mdi-shape-outline', trendData: [] },
@@ -269,7 +322,7 @@ const rawInternalTopBrand = ref<TableRow[]>([]);
 const rawInternalTrendBrand = ref<TrendItem[]>([]);
 const rawInternalStackedBrandVarian = ref<StackedItem[]>([]);
 const masterBrandsInternal = ref<string[]>([]);
-const selectedInternalBrand = ref<string | null>(null);
+const selectedInternalBrand = ref<string[]>([]);
 const carouselTotalValue = ref<number | string>('...');
 const totalUnileverAds = computed(() => {
   return internalMetricCards.value[0]?.value || 0;
@@ -426,7 +479,16 @@ const variantDistributionData = computed(() => variantBarChartData.value.data);
 const variantDistributionSegments = computed(() => variantBarChartData.value.segments);
 
 const carouselTotalTitle = computed(() => {
-  return selectedInternalBrand.value ? `${selectedInternalBrand.value} Total Ads` : 'Total Ads';
+  const brands = selectedInternalBrand.value;
+  
+  if (brands.length === 0) {
+    return 'Total Ads (All Brands)';
+  } else if (brands.length === 1) {
+    return `${brands[0]} Total Ads`;
+  } else {
+    // Jika lebih dari 1, tampilkan jumlahnya saja agar rapi
+    return `${brands.length} Selected Brands Total Ads`;
+  }
 });
 
 const variantHighlights = computed<HighlightItem[]>(() => {
@@ -496,7 +558,9 @@ const isVideoLoading = ref(false);
 
 
 async function handleItemClick(item: any) {
-  if (!selectedInternalBrand.value) return;
+  // 1. Cek panjang array, bukan existency-nya
+  // Catatan: Jika kamu ingin video bisa diklik saat mode "All Brands", hapus baris ini.
+  if (selectedInternalBrand.value.length === 0) return;
 
   selectedItem.value = item;
   showModal.value = true;
@@ -504,17 +568,16 @@ async function handleItemClick(item: any) {
   isVideoLoading.value = true;
 
   try {
-    const filters = {
+    const filters: Record<string, any> = {
       group: [internalGroup.value],
-      brand: [selectedInternalBrand.value],
+      // 2. Langsung pakai value-nya (karena sudah array), JANGAN pakai kurung siku [] lagi
+      brand: selectedInternalBrand.value, 
       varian: [item.name]
     };
 
     const response = await fetchData('list', filters);
 
     if (response && response.data && response.data.length > 0) {
-      // Kita bungkus agar formatnya dikenali modal premium
-      // Modal premium butuh properti seperti .video_link, .channel, dll
       videoList.value = response.data;
     }
   } catch (error) {
@@ -524,7 +587,22 @@ async function handleItemClick(item: any) {
   }
 }
 async function fetchGeneralData() {
-  const internalFilter = { group: [internalGroup.value] };
+  // 1. Base Filter
+  const internalFilter: Record<string, any> = { 
+    group: [internalGroup.value] 
+  };
+
+  // 2. Inject Filter Dinamis (Brand, Category, Sub, Variant)
+  if (selectedInternalBrand.value.length > 0) internalFilter.brand = selectedInternalBrand.value;
+  
+  // Asumsi parameter API untuk kategori adalah 'category', sesuaikan jika 'kategori'
+  if (selectedCategory.value.length > 0) internalFilter.category = selectedCategory.value;
+  
+  // Asumsi parameter API untuk sub kategori
+  if (selectedSubCategory.value.length > 0) internalFilter.sub_category = selectedSubCategory.value;
+  
+  // Asumsi parameter API untuk varian adalah 'varian'
+  if (selectedVariants.value.length > 0) internalFilter.varian = selectedVariants.value;
   try {
     const [
       totalAds, totalBrands, totalVariants, totalCategories,
@@ -602,6 +680,7 @@ async function fetchGeneralData() {
         labels: processedLabels
       },
     ];
+
 
     rawInternalTopBrand.value = transformApiResponse(topBrandData);
     rawInternalTrendBrand.value = trendBrandData || [];
@@ -683,16 +762,17 @@ async function handleBrandClick(item: any) {
 }
 
 async function fetchVariantData() {
-  if (!selectedInternalBrand.value) {
-    isVariantLoading.value = false;
-    return;
-  }
   isVariantLoading.value = true;
   try {
-    const requiredFilters = {
-      group: [internalGroup.value],
-      brand: [selectedInternalBrand.value]
+    // Bangun filter secara dinamis
+    const requiredFilters: Record<string, any> = {
+      group: [internalGroup.value]
     };
+
+    if (selectedInternalBrand.value.length > 0) {
+      // Langsung assign array-nya
+      requiredFilters.brand = selectedInternalBrand.value;
+    }
 
     const [totalAdsData, topVarianData, trendVarianData, totalVariantsData] = await Promise.all([
       fetchData('total/ads', requiredFilters),
@@ -701,6 +781,7 @@ async function fetchVariantData() {
       fetchData('total/varian', requiredFilters),
     ]);
 
+    // Update kartu metrik varian
     variantMetricCards.value = [
       { title: 'Total Brand Ads Detected', value: totalAdsData?.total || 0, icon: 'mdi-food-variant', color: 'purple', trendData: [] },
       { title: 'Number of Brand Variants', value: totalVariantsData?.total || 0, icon: 'mdi-tag-multiple', color: 'purple', trendData: [] }
@@ -709,10 +790,13 @@ async function fetchVariantData() {
     carouselTotalValue.value = totalAdsData?.total || 0;
 
     const rawVariantsList = transformApiResponse(topVarianData);
+
+    // Ambil video preview untuk tiap varian (tetap jalan baik single brand maupun all)
     const detailedVariants = await Promise.all(
       rawVariantsList.map(async (variant) => {
         let videoLink = '';
         try {
+          // Kirim requiredFilters yang sudah berisi group (dan brand jika ada)
           const videoRes = await fetchData('list', { ...requiredFilters, varian: [variant.name] });
           if (videoRes?.data?.length > 0) videoLink = videoRes.data[0].video_link;
         } catch (e) { console.error(e); }
@@ -729,36 +813,45 @@ async function fetchVariantData() {
   }
 }
 
+
 async function fetchBrandFilterDropdown() {
   try {
     const brandData = await fetchData('top/brand', { group: [internalGroup.value] });
     const transformedData = transformApiResponse(brandData);
     masterBrandsInternal.value = transformedData.map(brand => brand.name);
-    if (masterBrandsInternal.value.length > 0) {
-      selectedInternalBrand.value = masterBrandsInternal.value[0] ?? null;
-    }
+
+    // JANGAN langsung isi selectedInternalBrand.value di sini 
+    // agar default-nya tetap null (menampilkan semua data)
   } catch (error) {
     console.error("Failed to fetch internal brand list:", error);
   }
 }
-
 watch(
-  [startDate, endDate, selectedChannels],
+  [
+    startDate, 
+    endDate, 
+    selectedChannels, 
+    selectedInternalBrand, 
+    // Tambahkan ini:
+    selectedCategory,
+    selectedSubCategory,
+    selectedVariants
+  ],
   async () => {
     isGeneralLoading.value = true;
+    isVariantLoading.value = true;
+    
     await Promise.all([
       fetchGeneralData(),
       fetchVariantData()
     ]);
+    
     isGeneralLoading.value = false;
+    isVariantLoading.value = false;
   },
   { deep: true }
 );
 
-watch(selectedInternalBrand, async (newBrand) => {
-  if (!newBrand) return;
-  await fetchVariantData();
-});
 
 onMounted(async () => {
   isGeneralLoading.value = true;

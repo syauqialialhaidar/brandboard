@@ -91,7 +91,7 @@ import { ref, computed, watch } from 'vue'
 
 interface TableRow {
   rank?: number
-  mention?: string
+  mention?: string | number
   isInternal?: boolean
   [key: string]: any
 }

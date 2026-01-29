@@ -2,192 +2,239 @@
   <v-container fluid class="pa-0">
     <PageTitle title="Industry Analysis" />
 
-    <!-- <v-row>
-      <v-col v-for="(stat, index) in industryStats" :key="index" cols="12" sm="6" lg="3">
-        <MetricCard :title="stat.title" :value="stat.value" :icon="stat.icon" :trend-data="stat.trendData" :index="index" />
-      </v-col>
-    </v-row> -->
+    
 
-    <v-row class="mt-4">
-      <v-col cols="12" lg="6">
-        <v-card class="pa-0 pb-4 premium-card overflow-hidden d-flex flex-column" elevation="0">
-          <div class="d-flex flex-wrap align-center pa-4 ga-4">
-            <v-card-title class="text-subtitle-1 font-weight-bold pa-0">Ad Spend Trend</v-card-title>
-            <v-spacer></v-spacer>
-            <v-btn-toggle v-model="lineToggle" density="compact" divided>
-              <v-btn value="top10" class="text-capitalize px-3">Top 10</v-btn>
-              <v-btn value="all" class="text-capitalize px-3">All</v-btn>
-              <v-btn value="bottom10" class="text-capitalize px-3">Bottom 10</v-btn>
-            </v-btn-toggle>
-          </div>
-          <v-divider />
-          <v-card-text class="pa-4 chart-container">
-            <LineChart :datasets="lineDatasets" :labels="['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul']" :options="lineOptions" />
-          </v-card-text>
-        </v-card>
+    <v-row class="mb-8">
+      <v-col cols="12" lg="7">
+        <LineChartCard title="TV Channels Trends" :labels="dummyLabels" :data="channelTrendDatasets"
+          :is-loading="isLoading" class="h-100 rounded-xl" />
       </v-col>
-
-      <v-col cols="12" lg="6">
-        <v-card class="pa-0 pb-4 premium-card overflow-hidden d-flex flex-column" elevation="0">
-          <div class="d-flex flex-wrap align-center pa-4 ga-4">
-            <v-card-title class="text-subtitle-1 font-weight-bold pa-0">Brand Performance</v-card-title>
-            <v-spacer></v-spacer>
-            <v-btn-toggle v-model="barToggle" density="compact" divided>
-              <v-btn value="top10" class="text-capitalize px-3">Top 10</v-btn>
-              <v-btn value="all" class="text-capitalize px-3">All</v-btn>
-            </v-btn-toggle>
-          </div>
-          <v-divider />
-          <v-card-text class="pa-4 chart-container">
-            <BarChart :labels="barLabels" :datasets="barDatasets" :options="barOptions" />
-          </v-card-text>
-        </v-card>
+      <v-col cols="12" lg="5">
+        <TableCard title="Top Program TV" :headers="['Name']" :rows="dummyPrograms" class="h-100 rounded-xl" />
       </v-col>
     </v-row>
 
-    <v-row class="mt-4">
-      <v-col v-for="(table, index) in industryTables" :key="index" cols="12" lg="6">
-        <PremiumTable 
-          :title="table.title"
-          :headers="table.headers"
-          :rows="table.data"
-          :per-page="5"
+    <v-row class="mb-8">
+      <v-col cols="12">
+        <HighlightsCarousel 
+          total-title="Industry Top Highlights" 
+          item-label="Top Performance" 
+          :items="dummyHighlightItems"
+          :total-items-count="dummyHighlightItems.length" 
+          :total-value="4500" 
+          @item-click="handleBrandClick" 
         />
       </v-col>
     </v-row>
 
-    <div class="d-flex align-center mb-4 mt-4 ga-2">
-      <div class="text-h5 font-weight-bold">Deep-Dive Insights</div>
-    </div>
+    <v-row class="mb-8">
+      <v-col cols="12" md="4">
+        <TableCard title="Top Groups" :headers="['Name']" :rows="dummyGroups" class="h-100 rounded-xl" />
+      </v-col>
+      <v-col cols="12" md="4">
+        <TableCard title="Top Brands" :headers="['Name']" :rows="dummyBrands" class="h-100 rounded-xl" />
+      </v-col>
+      <v-col cols="12" md="4">
+        <TableCard title="Top Variants" :headers="['Name']" :rows="dummyVariants" class="h-100 rounded-xl" />
+      </v-col>
+    </v-row>
 
-    <!-- <v-row class="mb-8">
-      <v-col cols="12" lg="4">
-        <BarChartCard title="Age Distribution" :has-legend="true" :is-loading="isLoading" class="h-100 rounded-xl" />
+    <v-row class="mb-8">
+      <v-col cols="12" lg="6">
+        <PieChartCard title="Persentase Zona Waktu" :data="dummyTimezoneData" :has-legend="true" :is-loading="isLoading"
+          suffix="%" class="h-100 rounded-xl" />
       </v-col>
-      <v-col cols="12" lg="4">
-        <PieChartCard title="Location Distribution" :labels="PieChartCard" :is-loading="isLoading" class="h-100 rounded-xl" />
+      <v-col cols="12" lg="6">
+        <TableCard title="Top Brand Ambassador" :headers="['Name', 'Mentions']" :rows="dummyAmbassadors"
+          class="h-100 rounded-xl" />
       </v-col>
-      <v-col cols="12" lg="4">
-        <PieChartCard title="Gender Distribution" :labels="PieChartCard" :is-loading="isLoading" class="h-100 rounded-xl" />
+    </v-row>
+
+    <v-row class="mb-8">
+      <v-col cols="12" md="5">
+        <TableCard title="Program Types" :headers="['Type']" :rows="dummyProgramTypes" class="h-100 rounded-xl" />
       </v-col>
-    </v-row> -->
-    
+      <v-col cols="12" md="4">
+        <BarChartCard title="Scope Penyiaran" :data="dummyScopeData.data" :segment-labels="dummyScopeData.segments"
+          :is-loading="isLoading" class="h-100 rounded-xl" />
+      </v-col>
+      <v-col cols="12" md="3" class="d-flex flex-column ga-4">
+        <MetricCard title="Rate Card" value="4.2B" icon="mdi-cash-multiple" :trend-data="[10, 20, 15, 30]"
+          class="rounded-xl flex-grow-1" />
+        <MetricCard title="Total Tipe Iklan" value="156" icon="mdi-advertisements" :trend-data="[5, 10, 8, 12]"
+          class="rounded-xl flex-grow-1" />
+      </v-col>
+    </v-row>
+
+    <div class="text-h5 font-weight-bold mb-4">Audience Insights</div>
+    <v-row class="mb-2">
+      <v-col cols="12" md="4">
+        <PieChartCard title="Gender" :data="genderPieData" :has-legend="true" :is-loading="isLoading"
+          suffix="%" class="h-100 rounded-xl" />
+      </v-col>
+      <v-col cols="12" md="4">
+        <BarChartCard title="Age" :data="ageBarData.data" :segment-labels="ageBarData.segments" suffix="%"
+          :is-loading="isLoading" class="h-100 rounded-xl" />
+      </v-col>
+      <v-col cols="12" md="4">
+        <PieChartCard title="Location" :data="locationPieData" :has-legend="true" :is-loading="isLoading"
+          class="h-100 rounded-xl" />
+      </v-col>
+    </v-row>
+
   </v-container>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
+import { ref, onMounted } from 'vue';
 import PageTitle from '@/page-components/PageTitle.vue';
 import MetricCard from '@/page-components/MetricCard.vue';
-import LineChart from '@/page-components/charts/LineChart.vue';
-import BarChart from '@/page-components/charts/BarChart.vue';
-import FilterComponent from '@/page-components/Filter.vue';
-import PremiumTable from '@/page-components/TableCard.vue';
-import { fetchData } from '@/utils/apiBuilder';
-import BarChartCard from '@/page-components/BarChartCard.vue';
+import TableCard from '@/page-components/TableCard.vue';
 import PieChartCard from '@/page-components/PieChartCard.vue';
+import LineChartCard from '@/page-components/LineChartCard.vue';
+import BarChartCard from '@/page-components/BarChartCard.vue';
+import HighlightsCarousel from '@/page-components/HighlightsCarousel.vue';
 
-// 1. Filter Configuration
-const categories = ref<string[]>([]);
-const industryLevels = [
-  { key: 'category', label: 'Pilih Kategori', endpoint: 'top/sub-category', paramName: 'cat_id' },
-  { key: 'subCategory', label: 'Pilih Sub Kategori' }
-];
 
-// Load initial categories
-onMounted(async () => {
-  try {
-    const response = await fetchData('top/category');
-    if (response && Array.isArray(response)) {
-      categories.value = response.map((item: any) => item.name).sort();
-    }
-  } catch (error) {
-    console.error("Failed to load initial categories", error);
+interface PieChartItem {
+  label: string;
+  value: number;
+}
+const isLoading = ref(true);
+
+// --- DUMMY DATA ---
+
+
+
+const dummyHighlightItems = ref([
+  { 
+    name: 'Unilever', 
+    count: 1250, 
+    logo: 'https://upload.wikimedia.org/wikipedia/en/thumb/b/b1/Unilever.svg/1200px-Unilever.svg.png',
+    preview_video: '' // Kosongkan jika tidak mau ada video
+  },
+  { 
+    name: 'P&G', 
+    count: 980, 
+    logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/85/Procter_%26_Gamble_logo.svg/2560px-Procter_%26_Gamble_logo.svg.png',
+    preview_video: '' 
+  },
+  { 
+    name: 'Mayora', 
+    count: 850, 
+    logo: 'https://upload.wikimedia.org/wikipedia/id/c/c1/Logo_Mayora.svg',
+    preview_video: '' 
+  },
+  { 
+    name: 'Wings Group', 
+    count: 720, 
+    logo: 'https://upload.wikimedia.org/wikipedia/id/3/30/Logo_Wings.svg',
+    preview_video: '' 
+  },
+  { 
+    name: 'Nestle', 
+    count: 610, 
+    logo: 'https://upload.wikimedia.org/wikipedia/en/thumb/d/d3/Nestle-logo.svg/1200px-Nestle-logo.svg.png',
+    preview_video: '' 
   }
-});
+]);
 
-// Handle data dari filter
-const handleFilterUpdate = (filters: any) => {
-  console.log('Filter Terpilih di Industri Page:', filters);
-  // Panggil fungsi refresh data chart/metrics di sini berdasarkan filters.category & filters.subCategory
+// Handle klik jika ingin membuka modal
+const handleBrandClick = (item: any) => {
+  console.log('Brand Clicked:', item.name);
 };
 
-// 2. Data Metric Cards & Charts (Statik untuk contoh)
-const lineToggle = ref('all');
-const barToggle = ref('top10');
-const industryStats = ref([
-  { title: 'Total Ad Spend', value: '24.5M', icon: 'mdi-chart-arc', trendData: [20, 22, 18, 24, 23, 25, 24.5] },
-  { title: 'Total Impressions', value: '842.8M', icon: 'mdi-currency-usd', trendData: [400, 550, 480, 620, 700, 810, 842] },
-  { title: 'Active Brands', value: '12.4k', icon: 'mdi-account-group', trendData: [8, 9, 11, 10, 12, 13, 12.4] },
-  { title: 'Average Reach', value: '15.2%', icon: 'mdi-trending-up', trendData: [5, 8, 7, 12, 10, 14, 15.2] }
+const genderPieData = ref([
+  { label: 'Laki-laki', value: 65 },
+  { label: 'Perempuan', value: 35 },
 ]);
 
-const lineDatasets = computed(() => [{
-  label: 'Monthly Spending',
-  data: [30, 45, 35, 50, 40, 60, 55],
-  borderColor: '#6366f1',
-  backgroundColor: 'rgba(99, 102, 241, 0.1)',
-  fill: true, tension: 0.4
-}]);
-const lineOptions = { responsive: true, maintainAspectRatio: false };
-
-const barLabels = ref(['Samsung', 'Apple', 'Xiaomi', 'Oppo', 'Vivo']);
-const barDatasets = computed(() => [
-  { label: 'Digital', data: [40, 50, 30, 25, 20], backgroundColor: '#6366f1' },
-  { label: 'Social', data: [30, 20, 45, 30, 25], backgroundColor: '#8b5cf6' }
+const ageBarData = ref({
+  segments: ['Anak-anak', 'Remaja', 'Dewasa'],
+  data: [
+    { label: 'Persentase', values: [20, 30, 50] }
+  ]
+});
+const dummyLocations = ref([
+  { name: 'Jakarta', total: 1250 },
+  { name: 'Surabaya', total: 980 },
+  { name: 'Bandung', total: 850 },
+  { name: 'Medan', total: 720 },
+  { name: 'Semarang', total: 610 },
 ]);
-const barOptions = { responsive: true, maintainAspectRatio: false, scales: { x: { stacked: true }, y: { stacked: true } } };
 
+const locationPieData = computed<PieChartItem[]>(() => {
+  // Jika nanti pakai API, ganti dummyLocations.value dengan rawLocationData.value
+  return dummyLocations.value.map(item => ({
+    label: item.name,
+    value: Number(item.total)
+  }));
+});
 
+const dummyLabels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
-const industryTables = ref([
-  {
-    title: 'Top Sub-Brands',
-    headers: ['Sub-Brand', 'Company', 'Spend'],
-    data: [] // Kosong sementara
-  },
-  {
-    title: 'Top TV Programs',
-    headers: ['Program', 'Channel', 'Rating'],
-    data: []
-  },
-  {
-    title: 'Top TV Channels',
-    headers: ['Channel', 'Audience Share', 'Growth'],
-    data: []
-  },
-  {
-    title: 'Top Ad Spending',
-    headers: ['Brand', 'Category', 'Total Spend'],
-    data: []
-  },
-  {
-    title: 'Prime Time Leaders',
-    headers: ['Program', 'Time Slot', 'Viewers'],
-    data: []
-  },
-  {
-    title: 'Top Program Types',
-    headers: ['Genre', 'Total Programs', 'Popularity'],
-    data: []
-  }
-]);
+const channelTrendDatasets = [
+  { label: 'RCTI', data: [30, 45, 35, 50, 40, 60, 55], borderColor: '#1976D2', fill: false, tension: 0.4 },
+  { label: 'SCTV', data: [25, 35, 40, 30, 45, 50, 48], borderColor: '#388E3C', fill: false, tension: 0.4 }
+];
+
+const dummyPrograms = [
+  { name: 'Sinetron A', mention: '8.5', rank: 1 },
+  { name: 'News Update', mention: '7.2', rank: 2 },
+  { name: 'Talkshow Malam', mention: '6.8', rank: 3 }
+];
+
+const dummyGroups = [
+  { name: 'Unilever', mention: 1500, rank: 1 },
+  { name: 'Mayora', mention: 1200, rank: 2 }
+];
+
+const dummyBrands = [
+  { name: 'Pepsodent', mention: 800, rank: 1 },
+  { name: 'Indomie', mention: 750, rank: 2 }
+];
+
+const dummyVariants = [
+  { name: 'Pepsodent White 190g', mention: 400, rank: 1 },
+  { name: 'Indomie Goreng Jumbo', mention: 350, rank: 2 }
+];
+
+const dummyTimezoneData = [
+  { label: 'WIB', value: 70 },
+  { label: 'WITA', value: 20 },
+  { label: 'WIT', value: 10 }
+];
+
+const dummyAmbassadors = [
+  { name: 'Raffi Ahmad', mention: 120 },
+  { name: 'Agnez Mo', mention: 95 },
+  { name: 'Joe Taslim', mention: 80 }
+];
+
+const dummyProgramTypes = [
+  { name: 'Variety Show', mention: 45 },
+  { name: 'Drama Series', mention: 38 },
+  { name: 'Sports', mention: 22 }
+];
+
+const dummyScopeData = {
+  segments: ['National', 'Regional', 'Local'],
+  data: [{ label: 'Coverage', values: [65, 25, 10] }]
+};
+
+const dummyGenderData = [
+  { label: 'Male', value: 48 },
+  { label: 'Female', value: 52 }
+];
+
+const dummyAgeData = {
+  segments: ['13-17', '18-24', '25-34', '35-44', '45+'],
+  data: [{ label: 'Percentage', values: [15, 25, 30, 20, 10] }]
+};
+
+onMounted(() => {
+  setTimeout(() => {
+    isLoading.value = false;
+  }, 1000);
+});
 </script>
-
-<style scoped>
-.premium-card {
-  border-radius: 20px !important;
-  border: 1px solid rgba(var(--v-border-color), 0.05) !important;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05) !important;
-  height: 100%;
-}
-.chart-container {
-  min-height: 350px;
-  flex-grow: 1;
-}
-.v-btn-toggle {
-  border-radius: 12px !important;
-  border: 1px solid rgba(var(--v-border-color), 0.1) !important;
-  height: 32px;
-}
-</style>
