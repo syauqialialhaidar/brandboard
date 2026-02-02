@@ -90,7 +90,6 @@
                     width="100%"
                     height="320"
                     :type="selectedItem?.chartType || 'area'"
-                    :options="chartOptions"
                     :series="seriesData"
                   ></apexchart>
                 </div>

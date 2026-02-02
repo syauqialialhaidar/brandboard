@@ -74,7 +74,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useAppStore } from '@/stores/app'
 import { storeToRefs } from 'pinia'
 import { fetchData } from '@/utils/apiBuilder'
@@ -136,6 +136,35 @@ const totalActiveFilters = computed(() => {
   return activeLevels.value.reduce((acc, level) => acc + (selections.value[level.key]?.length || 0), 0)
 })
 
+const formatTitle = (text: string) => {
+  if (!text) return '';
+
+  return text.split(' ').map(word => {
+    // 1. Jika kata mengandung angka (misal: TRANS7, TVRI2), biasanya itu brand/channel.
+    // Biarkan tetap sesuai aslinya.
+    if (/\d/.test(word)) {
+      return word;
+    }
+
+    // 2. Deteksi singkatan/akronim (2-4 karakter)
+    // Jika kata aslinya huruf besar semua dan pendek (misal: PT, MNC, RCTI), biarkan tetap besar.
+    if (word === word.toUpperCase() && word.length >= 2 && word.length <= 4) {
+      return word;
+    }
+
+    // 3. Deteksi CamelCase (misal: TransTV, ShopeePay)
+    // Kalau ada huruf besar di tengah kata, jangan diganggu.
+    if (/[a-z][A-Z]/.test(word)) {
+      return word;
+    }
+
+    // 4. Sisanya adalah kata reguler (misal: BUAVITA, indomie, mangga)
+    // Kita ubah jadi Title Case (Depan besar, sisanya kecil).
+    const lower = word.toLowerCase();
+    return lower.charAt(0).toUpperCase() + lower.slice(1);
+  }).join(' ');
+};
+
 /**
  * Memanggil API hanya untuk filter yang diaktifkan
  */
@@ -143,42 +172,50 @@ async function loadFilterOptions() {
   const tasks = activeLevels.value.map(async (level) => {
     loadings.value[level.key] = true
     try {
-      // PERBAIKAN: Tambahkan parameter filter saat fetch
       const filterParam: any = {};
-      
-      // Jika di page internal, paksa API hanya mengambil data milik internalGroup
+
       const isInternalPage = props.title.toLowerCase().includes('internal');
       if (isInternalPage && internalGroup.value) {
         filterParam.group = [internalGroup.value];
       }
 
-      // Panggil API dengan filterParam
-      const data = await fetchData(level.endpoint!, filterParam); 
-      
+      const data = await fetchData(level.endpoint!, filterParam);
+
       if (Array.isArray(data)) {
         let rawItems = data.map(item => item.name || item.title).filter(Boolean);
 
-        const isInternalPage = props.title.toLowerCase().includes('internal');
+        // MODIFIKASI DI SINI:
+        rawItems = rawItems.map(name => {
+          // Khusus untuk kategori channel, paksa besar semua (RCTI, SCTV, dsb)
+          if (level.key === 'channel') {
+            return name.toUpperCase();
+          }
+          // Untuk kategori lainnya (Brand, Group, dll), gunakan fungsi pintar
+          return formatTitle(name);
+        });
+
+        // MENGGUNAKAN FUNGSI PINTAR (Format Title)
+        rawItems = rawItems.map(name => formatTitle(name));
+
         const internalGroupName = internalGroup.value?.toLowerCase() || '';
 
         if (props.excludeInternal) {
-          // Page EXTERNAL
+          // Page EXTERNAL: Buang yang mengandung internal
           rawItems = rawItems.filter(name => {
             const n = name.toLowerCase();
             return n !== internalGroupName && !n.includes('internal');
           });
         } else if (isInternalPage) {
-          // Page INTERNAL
+          // Page INTERNAL: Ambil yang grup internal atau ada kata internal
           rawItems = rawItems.filter(name => {
             const n = name.toLowerCase();
-            // Munculkan jika namanya sama dengan grup internal ATAU mengandung kata 'internal'
             return n === internalGroupName || n.includes('internal');
           });
 
-          // Jika setelah difilter kosong (karena API tidak pakai kata 'internal'), 
-          // kembalikan semua data agar user bisa memilih
+          // Fallback jika kosong
           if (rawItems.length === 0) {
-            rawItems = data.map(item => item.name || item.title).filter(Boolean);
+            const allFormatted = data.map(item => formatTitle(item.name || item.title)).filter(Boolean);
+            rawItems = [...new Set(allFormatted)].sort();
           }
         }
 

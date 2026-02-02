@@ -12,8 +12,16 @@ const API_BASE_URL = import.meta.env.VITE_API_DATA_URL || 'http://154.26.134.72:
  */
 function encodeParam(values: string[]): string {
   if (!values || values.length === 0) return ''
+  
   const paramString = values.join(',')
-  return btoa(paramString)
+  
+  // Solusi untuk btoa dengan karakter Unicode:
+  // 1. Encode string ke URI Component
+  // 2. Ubah %xx back into string bytes
+  // 3. Lakukan btoa
+  return btoa(encodeURIComponent(paramString).replace(/%([0-9A-F]{2})/g, (match, p1) => {
+    return String.fromCharCode(parseInt(p1, 16))
+  }))
 }
 
 /**
@@ -52,9 +60,10 @@ export function buildApiParams(additionalParams: Record<string, string[]> = {}):
   // We can just loop over the keys in additionalParams that we haven't handled
   const handledKeys = ['channel', 'category']
   for (const key in additionalParams) {
-    if (Object.prototype.hasOwnProperty.call(additionalParams, key) && !handledKeys.includes(key)) {
+    if (!handledKeys.includes(key)) {
       const values = additionalParams[key]
-      if (values && values.length > 0) {
+      // Pastikan values adalah array sebelum di-encode
+      if (Array.isArray(values) && values.length > 0) {
         params.set(key, encodeParam(values))
       }
     }

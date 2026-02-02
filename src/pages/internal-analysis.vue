@@ -773,6 +773,19 @@ async function fetchVariantData() {
       // Langsung assign array-nya
       requiredFilters.brand = selectedInternalBrand.value;
     }
+    if (selectedCategory.value.length > 0) {
+      requiredFilters.category = selectedCategory.value; 
+    }
+
+    // 3. Filter Sub Kategori
+    if (selectedSubCategory.value.length > 0) {
+      requiredFilters.sub_category = selectedSubCategory.value;
+    }
+
+    // 4. Filter Varian (Jaga-jaga jika user memfilter spesifik varian di header)
+    if (selectedVariants.value.length > 0) {
+      requiredFilters.varian = selectedVariants.value;
+    }
 
     const [totalAdsData, topVarianData, trendVarianData, totalVariantsData] = await Promise.all([
       fetchData('total/ads', requiredFilters),
@@ -858,7 +871,8 @@ onMounted(async () => {
   isVariantLoading.value = true;
   await Promise.all([
     fetchGeneralData(),
-    fetchBrandFilterDropdown()
+    fetchBrandFilterDropdown(),
+    fetchVariantData()
   ]);
   isGeneralLoading.value = false;
 });

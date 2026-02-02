@@ -1,7 +1,8 @@
 <template>
   <v-container fluid class="pa-0">
     <PageTitle title="External Analysis" exclude-internal
-      :enabled-filters="['channel', 'group', 'brand', 'variants', 'kategori', 'sub_kategori']" />
+      :enabled-filters="['channel', 'group', 'brand', 'variants', 'kategori', 'sub_kategori']"
+      @update:filter="handleFilterUpdate" />
 
     <div>
       <!-- <h2 class="text-h6 font-weight-bold mb-4">General External Overview</h2>
@@ -26,14 +27,6 @@
         </v-col>
       </v-row> -->
 
-      <div class="d-flex flex-wrap align-center mb-6 ga-4">
-        <div class="text-h6 font-weight-bold">Specific Competitor Analysis</div>
-        <v-spacer></v-spacer>
-        <v-sheet width="300" color="transparent">
-          <v-select v-model="selectedExternalGroup" density="compact" label="Select Competitor Group" variant="outlined"
-            hide-details :items="masterExternalGroups"></v-select>
-        </v-sheet>
-      </div>
 
       <v-row>
         <v-col v-for="(card, i) in externalMetricCards" :key="card.title" cols="12" sm="6" md="4">
@@ -42,30 +35,6 @@
         </v-col>
       </v-row>
 
-      <v-row class="mb-8">
-      <v-col cols="12" md="4">
-        <TableCard title="Top Program" :headers="['Program Name']" :rows="topPrograms" :per-page="5"
-          class="h-100 rounded-xl" />
-      </v-col>
-
-      <v-col cols="12" md="4">
-        <TableCard title="Top Brand Ambasador" :headers="['Program Name']" :rows="topPrograms" :per-page="5"
-          class="h-100 rounded-xl" />
-      </v-col>
-
-      <v-col cols="12" md="4" class="d-flex flex-column">
-        <v-row>
-          <v-col cols="12">
-            <MetricCard title="Rate Card" value="3.m" icon="mdi-video"
-              :trend-data="[10, 20, 15, 25, 30]" class="rounded-xl" />
-          </v-col>
-          <v-col cols="12">
-            <MetricCard title="Total Reach" value="1.2M" icon="mdi-trending-up" :trend-data="[5, 15, 10, 20, 25]"
-              class="rounded-xl" />
-          </v-col>
-        </v-row>
-      </v-col>
-    </v-row>
 
       <v-row class="mt-2">
         <v-col cols="12" md="4">
@@ -84,13 +53,6 @@
         <v-col cols="12" md="7">
           <BarChartCard :title="externalBarTitle" :data="variantDistributionData"
             :segment-labels="variantDistributionSegments" :is-loading="isLoading" />
-        </v-col>
-      </v-row>
-
-      <v-row class="mt-12">
-        <v-col cols="12">
-          <PageTitle title="External Brand and Variants" :show-date-filter="false" 
-            :enabled-filters="['brand']" />
         </v-col>
       </v-row>
 
@@ -113,6 +75,54 @@
             @item-click="handleItemClick" />
         </v-col>
       </v-row>
+      <v-row class="mb-8">
+        <v-col cols="12" md="4">
+          <TableCard title="Top Program" :headers="['Program Name']" :rows="topPrograms" :per-page="5"
+            class="h-100 rounded-xl" />
+        </v-col>
+
+        <v-col cols="12" md="4">
+          <TableCard title="Top Brand Ambasador" :headers="['Program Name']" :rows="topPrograms" :per-page="5"
+            class="h-100 rounded-xl" />
+        </v-col>
+
+        <v-col cols="12" md="4" class="d-flex flex-column">
+          <v-row>
+            <v-col cols="12">
+              <MetricCard title="Rate Card" value="3.m" icon="mdi-video" :trend-data="[10, 20, 15, 25, 30]"
+                class="rounded-xl" />
+            </v-col>
+            <v-col cols="12">
+              <MetricCard title="Total Reach" value="1.2M" icon="mdi-trending-up" :trend-data="[5, 15, 10, 20, 25]"
+                class="rounded-xl" />
+            </v-col>
+          </v-row>
+        </v-col>
+      </v-row>
+
+      <h2 class="text-h6 font-weight-bold mb-4">Distributions</h2>
+      <v-row class="mb-2">
+        <v-col cols="12" md="4">
+          <PieChartCard title="Gender" :data="dummyGenderData" :has-legend="true" suffix="%" />
+        </v-col>
+        <v-col cols="12" md="4">
+          <BarChartCard title="Age" :data="dummyAgeData.data" :segment-labels="dummyAgeData.segments" suffix="%" />
+        </v-col>
+        <v-col cols="12" md="4">
+          <PieChartCard title="Location" :data="dummyLocationData" :has-legend="true" />
+        </v-col>
+        <v-col cols="12" md="4">
+          <PieChartCard title="Zone Time" :data="dummyTimezoneData" :has-legend="true" suffix="%" />
+        </v-col>
+        <v-col cols="12" md="4">
+          <BarChartCard title="Scope" :data="dummyScopeData.data" :segment-labels="dummyScopeData.segments" />
+        </v-col>
+        <v-col cols="12" md="4">
+          <TableCard title="Program Types" :headers="['Type Name', 'Mention']" :rows="dummyProgramType" :per-page="5"
+            class="rounded-xl" />
+        </v-col>
+      </v-row>
+
     </div>
   </v-container>
 </template>
@@ -142,6 +152,49 @@ interface StackedItem { varian: { [key: string]: number }; total: number; brand:
 interface DateRange { labels: string[]; apiDates: string[]; }
 interface MetricCardItem { title: string; value: string | number; icon: string; trendData: number[]; labels: string[]; }
 
+
+// --- DATA DUMMY BARU ---
+
+const dummyGenderData = ref([
+  { label: 'Female', value: 60 },
+  { label: 'Male', value: 40 },
+]);
+
+const dummyAgeData = ref({
+  segments: ['Kids (0-12)', 'Teens (13-18)', 'Adults (19-45)', 'Seniors (45+)'],
+  data: [
+    { label: 'Audience Share', values: [15, 25, 45, 15] }
+  ]
+});
+
+const dummyLocationData = ref([
+  { label: 'Jawa Barat', value: 350 },
+  { label: 'DKI Jakarta', value: 300 },
+  { label: 'Jawa Timur', value: 200 },
+  { label: 'Jawa Tengah', value: 150 },
+]);
+
+const dummyTimezoneData = ref([
+  { label: 'WIB', value: 80 },
+  { label: 'WITA', value: 15 },
+  { label: 'WIT', value: 5 },
+]);
+
+const dummyScopeData = ref({
+  segments: ['National', 'Regional', 'Local'],
+  data: [
+    { label: 'Total Ads', values: [70, 20, 10] }
+  ]
+});
+
+const dummyProgramType = ref([
+  { name: 'Drama/Soap Opera', mention: '450' },
+  { name: 'Variety Show', mention: '320' },
+  { name: 'News', mention: '150' },
+  { name: 'Sports', mention: '80' },
+  { name: 'Movies', mention: '60' },
+]);
+
 const topPrograms = ref([
   { name: 'Ikatan Cinta', mention: '85%' },
   { name: 'Preman Pensiun', mention: '72%' },
@@ -152,11 +205,15 @@ const topPrograms = ref([
 
 // --- State Management ---
 const appStore = useAppStore();
-const { startDate, endDate, selectedChannels, internalGroup } = storeToRefs(appStore);
+const { 
+  startDate, 
+  endDate, 
+  internalGroup, 
+  externalGroups // <--- Tinggal ambil dari sini
+} = storeToRefs(appStore);
 
 const isLoading = ref(true);
 const masterExternalGroups = ref<string[]>([]);
-const selectedExternalGroup = ref<string | null>(null);
 
 const showModal = ref(false);
 const selectedItem = ref<any>(null);
@@ -169,6 +226,34 @@ const isBrandsLoading = ref(false);
 const brandMentionsHighlights = ref<HighlightItem[]>([]);
 const brandMentionsTotalValue = ref<number | string>(0);
 const brandMentionsCount = ref<number>(0);
+
+
+
+// Tambahkan state ini
+const selectedExternalGroup = ref<string[]>([]);
+const selectedBrand = ref<string[]>([]);
+const selectedCategory = ref<string[]>([]);
+const selectedSubCategory = ref<string[]>([]);
+const selectedVariants = ref<string[]>([]);
+// Fungsi untuk menangkap data dari PageTitle
+const handleFilterUpdate = (newFilters: any) => {
+  if (newFilters.channel) appStore.selectedChannels = newFilters.channel;
+  
+  // Jika User mengganti Grup Kompetitor, reset brand/kategori sebelumnya
+  if (newFilters.group) {
+     selectedExternalGroup.value = newFilters.group;
+     // Reset filter bawahannya agar tidak ada brand 'nyasar' dari grup sebelumnya
+     selectedBrand.value = [];
+     selectedCategory.value = [];
+     selectedSubCategory.value = [];
+     selectedVariants.value = [];
+  }
+
+  if (newFilters.brand) selectedBrand.value = newFilters.brand;
+  if (newFilters.kategori) selectedCategory.value = newFilters.kategori;
+  if (newFilters.sub_kategori) selectedSubCategory.value = newFilters.sub_kategori;
+  if (newFilters.variants) selectedVariants.value = newFilters.variants;
+};
 
 // --- Helpers ---
 function stringToColor(str: string) {
@@ -183,17 +268,19 @@ const transformApiResponse = (data: any[]): TableRow[] => {
   return data.map((item) => ({ name: item.name, mention: item.total || 0 }));
 };
 
-// MODIFIKASI: Menghapus latar belakang kotak (watermark-like) dan menggunakan lingkaran bersih
 const createLogo = (name: string) => {
-  const initial = (name || 'E').charAt(0).toUpperCase();
+  const initial = (name || 'U').charAt(0).toUpperCase();
   const color = stringToColor(name);
-  // Menggunakan Circle dan background transparan untuk menghindari efek "kotakan putih"
-  const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'>
-    <circle cx='40' cy='40' r='38' fill='${color}' />
-    <text x='50%' y='50%' font-size='35' fill='white' text-anchor='middle' dominant-baseline='central' font-family='Arial, sans-serif' font-weight='bold'>${initial}</text>
-  </svg>`;
+  const svg = `
+    <svg xmlns='http://www.w3.org/2000/svg' width='80' height='80'>
+      <rect width='100%' height='100%' fill='${color}' />
+      <text x='50%' y='55%' font-size='40' fill='white' text-anchor='middle' dominant-baseline='middle' font-family='Arial'>
+        ${initial}
+      </text>
+    </svg>`;
   return `data:image/svg+xml;base64,${btoa(svg)}`;
 };
+
 
 function generateDateRange(start: string, end: string): DateRange {
   const labels: string[] = [];
@@ -212,18 +299,18 @@ function generateDateRange(start: string, end: string): DateRange {
 async function fetchGlobalCompetitorBrands() {
   isBrandsLoading.value = true;
   try {
-    const allBrandsRaw = await fetchData('top/brand', {});
-    const transformed = transformApiResponse(allBrandsRaw);
-    const internalBrandsRaw = await fetchData('top/brand', { group: [internalGroup.value] });
-    const internalNames = transformApiResponse(internalBrandsRaw).map(b => b.name);
+    // Ambil data dengan filter exclude internal langsung dari API jika memungkinkan
+    const allBrandsRaw = await fetchData('top/brand', {
+      exclude_group: [internalGroup.value]
+    });
 
-    rawGlobalBrands.value = transformed
-      .filter(brand => !internalNames.includes(brand.name))
-      .map(brand => ({
-        name: brand.name,
-        count: brand.mention,
-        logo: createLogo(brand.name),
-      }));
+    const transformed = transformApiResponse(allBrandsRaw);
+
+    rawGlobalBrands.value = transformed.map(brand => ({
+      name: brand.name,
+      count: brand.mention,
+      logo: createLogo(brand.name),
+    }));
   } catch (error) {
     console.error(error);
   } finally {
@@ -248,12 +335,15 @@ async function handleBrandHighlightClick(item: any) {
 
 async function fetchBrandHighlightsData() {
   try {
-    const topBrandsRaw = await fetchData('top/brand', {});
-    const transformed = transformApiResponse(topBrandsRaw);
-    const filteredBrands = transformed.filter(b => b.name !== internalGroup.value);
-    const totalMentions = filteredBrands.reduce((acc, curr) => acc + (Number(curr.mention) || 0), 0);
+    // Tambahkan exclude_group agar brand internal tidak masuk ke carousel
+    const topBrandsRaw = await fetchData('top/brand', {
+      exclude_group: [internalGroup.value]
+    });
 
-    brandMentionsHighlights.value = filteredBrands.map(brand => ({
+    const transformed = transformApiResponse(topBrandsRaw);
+    const totalMentions = transformed.reduce((acc, curr) => acc + (Number(curr.mention) || 0), 0);
+
+    brandMentionsHighlights.value = transformed.map(brand => ({
       name: brand.name,
       count: brand.mention,
       logo: createLogo(brand.name),
@@ -261,7 +351,7 @@ async function fetchBrandHighlightsData() {
     }));
 
     brandMentionsTotalValue.value = totalMentions;
-    brandMentionsCount.value = filteredBrands.length;
+    brandMentionsCount.value = transformed.length;
   } catch (error) {
     console.error(error);
   }
@@ -362,88 +452,123 @@ const variantTrendData = computed(() => {
 async function handleItemClick(item: any) {
   selectedItem.value = item;
   showModal.value = true;
-  videoList.value = [];
   isVideoLoading.value = true;
+  
   try {
-    const response = await fetchData('list', { group: [selectedExternalGroup.value!], varian: [item.name] });
+    const response = await fetchData('list', {
+      exclude_group: [internalGroup.value], // Menjamin video yang muncul bukan video kita
+      varian: [item.name]
+    });
     if (response?.data) videoList.value = response.data;
-  } catch (error) { console.error(error); } finally { isVideoLoading.value = false; }
+  } catch (error) {
+    console.error(error);
+  } finally {
+    isVideoLoading.value = false;
+  }
 }
 
 async function fetchOverallExternalData() {
-  const internalFilter = { group: [internalGroup.value] };
-  const noFilter = {};
+  // Gunakan logika yang sama: Pilih Spesifik atau Exclude Internal
+  const metricFilter: Record<string, any> = {};
+  
+  if (selectedExternalGroup.value && selectedExternalGroup.value.length > 0) {
+      metricFilter.group = selectedExternalGroup.value;
+  } else {
+      metricFilter.exclude_group = [internalGroup.value];
+  }
+
   try {
     const [
       industryAds, industryBrands, industryVariants, industryCategories, industryTrend,
-      myAds, myBrands, myVariants, myCategories, myTrend, topBrandsRaw
+      // HAPUS request data internal (myAds, myBrands, dll) karena tidak dipakai
     ] = await Promise.all([
-      fetchData('total/ads', noFilter),
-      fetchData('total/brand', noFilter),
-      fetchData('total/varian', noFilter),
-      fetchData('total/category', noFilter),
-      fetchData('trend/brand', noFilter),
-      fetchData('total/ads', internalFilter),
-      fetchData('total/brand', internalFilter),
-      fetchData('total/varian', internalFilter),
-      fetchData('total/category', internalFilter),
-      fetchData('trend/brand', internalFilter),
-      fetchData('top/brand', noFilter)
-    ]);
-
-    const industryDailyMap: Record<string, number> = {};
+      fetchData('total/ads', metricFilter),
+      fetchData('total/brand', metricFilter),
+      fetchData('total/varian', metricFilter),
+      fetchData('total/category', metricFilter),
+      fetchData('trend/brand', metricFilter),
+    ]);// Proses Trend tanpa pengurangan manual
+    let processedTrend: number[] = [];
+    let processedLabels: string[] = [];
+    
     if (industryTrend && Array.isArray(industryTrend)) {
-      industryTrend.forEach((item: any) => {
-        const d = String(item.date);
-        industryDailyMap[d] = (industryDailyMap[d] || 0) + (Number(item.total) || 0);
-      });
-    }
-
-    const myDailyMap: Record<string, number> = {};
-    if (myTrend && Array.isArray(myTrend)) {
-      myTrend.forEach((item: any) => {
-        const d = String(item.date);
-        myDailyMap[d] = (myDailyMap[d] || 0) + (Number(item.total) || 0);
-      });
-    }
-
-    const sortedDates = Object.keys(industryDailyMap).sort();
-    const processedLabels = sortedDates.map(d => moment(d).format('DD MMM'));
-    const externalTrendData = sortedDates.map(date => Math.max(0, (industryDailyMap[date] || 0) - (myDailyMap[date] || 0)));
-
-    overallMetricCards.value = [
-      { title: 'Total External Ads', value: Math.max(0, (industryAds?.total || 0) - (myAds?.total || 0)), icon: 'mdi-chart-line', trendData: externalTrendData, labels: processedLabels },
-      { title: 'Total Competitor Brands', value: Math.max(0, (industryBrands?.total || 0) - (myBrands?.total || 0)), icon: 'mdi-tag', trendData: externalTrendData.map(v => Math.ceil(v / 5)), labels: processedLabels },
-      { title: 'Total Variants', value: Math.max(0, (industryVariants?.total || 0) - (myVariants?.total || 0)), icon: 'mdi-tag-multiple', trendData: externalTrendData.map(v => Math.ceil(v / 2)), labels: processedLabels },
-      { title: 'Total Category', value: Math.max(0, (industryCategories?.total || 0) - (myCategories?.total || 0)), icon: 'mdi-shape-outline', trendData: externalTrendData.map(v => Math.ceil(v / 10)), labels: processedLabels },
+        const dailyMap: Record<string, number> = {};
+        industryTrend.forEach((item: any) => {
+            const d = String(item.date);
+            dailyMap[d] = (dailyMap[d] || 0) + (Number(item.total) || 0);
+        });
+        const sortedDates = Object.keys(dailyMap).sort();
+        processedLabels = sortedDates.map(d => moment(d).format('DD MMM'));
+        processedTrend = sortedDates.map(d => dailyMap[d] || 0);
+    }overallMetricCards.value = [
+      { title: 'Total External Ads', value: industryAds?.total || 0, icon: 'mdi-chart-line', trendData: processedTrend, labels: processedLabels },
+      { title: 'Total Competitor Brands', value: industryBrands?.total || 0, icon: 'mdi-tag', trendData: processedTrend.map(v => Math.ceil(v / 5)), labels: processedLabels },
+      { title: 'Total Variants', value: industryVariants?.total || 0, icon: 'mdi-tag-multiple', trendData: processedTrend.map(v => Math.ceil(v / 2)), labels: processedLabels },
+      { title: 'Total Category', value: industryCategories?.total || 0, icon: 'mdi-shape-outline', trendData: processedTrend.map(v => Math.ceil(v / 10)), labels: processedLabels },
     ];
   } catch (error) {
     console.error(error);
   }
 }
 
+// Di dalam fetchGroupFilterDropdown
 async function fetchGroupFilterDropdown() {
+  // Tidak perlu fetch API lagi, karena sudah ada di Store
+  masterExternalGroups.value = externalGroups.value; 
+}
+async function initializeDefaultFilters(groups: string[]) {
+  const filterParams = { group: groups };
+  
   try {
-    const groupData = await fetchData('top/group');
-    masterExternalGroups.value = transformApiResponse(groupData).map(g => g.name).filter(n => n !== internalGroup.value);
-    fetchOverallExternalData();
-    if (masterExternalGroups.value.length > 0) selectedExternalGroup.value = masterExternalGroups.value[0] ?? null;
-  } catch (error) { console.error(error); }
+    const [brands, categories, subCategories, variants] = await Promise.all([
+      fetchData('top/brand', filterParams),
+      fetchData('top/category', filterParams),
+      fetchData('top/sub_category', filterParams),
+      fetchData('top/varian', filterParams)
+    ]);
+
+    // Isi state selected dengan semua value yang didapat dari API
+    if (brands) selectedBrand.value = brands.map((b: any) => b.name);
+    if (categories) selectedCategory.value = categories.map((c: any) => c.name);
+    if (subCategories) selectedSubCategory.value = subCategories.map((s: any) => s.name);
+    if (selectedVariants.value.length === 0 && variants) {
+       selectedVariants.value = variants.map((v: any) => v.name);
+    }
+  } catch (error) {
+    console.error("Gagal inisialisasi default filters:", error);
+  }
 }
 
 async function fetchAllData() {
-  if (!selectedExternalGroup.value) { isLoading.value = false; return; }
   isLoading.value = true;
-  const specificFilter = { group: [selectedExternalGroup.value!] };
+  
+  const dynamicFilter: Record<string, any> = {};
+
+  if (selectedExternalGroup.value && selectedExternalGroup.value.length > 0) {
+     dynamicFilter.group = selectedExternalGroup.value;
+  } else {
+     dynamicFilter.exclude_group = [internalGroup.value];
+  }
+
+  if (selectedBrand.value.length > 0) dynamicFilter.brand = selectedBrand.value;
+  if (selectedCategory.value.length > 0) dynamicFilter.category = selectedCategory.value;
+  if (selectedSubCategory.value.length > 0) dynamicFilter.sub_category = selectedSubCategory.value;
+  if (selectedVariants.value.length > 0) dynamicFilter.varian = selectedVariants.value;
+
   try {
     const [
       totalAds, totalBrands, totalVariants,
       topBrandData, trendBrandData, stackedBrandVarianData,
       topVarianRaw, trendVarianData
     ] = await Promise.all([
-      fetchData('total/ads', specificFilter), fetchData('total/brand', specificFilter), fetchData('total/varian', specificFilter),
-      fetchData('top/brand', specificFilter), fetchData('trend/brand', specificFilter), fetchData('stacked/brand/varian', specificFilter),
-      fetchData('top/varian', specificFilter), fetchData('trend/varian', specificFilter),
+      fetchData('total/ads', dynamicFilter),
+      fetchData('total/brand', dynamicFilter),
+      fetchData('total/varian', dynamicFilter),
+      fetchData('top/brand', dynamicFilter),
+      fetchData('trend/brand', dynamicFilter),
+      fetchData('stacked/brand/varian', dynamicFilter),
+      fetchData('top/varian', dynamicFilter),
+      fetchData('trend/varian', dynamicFilter),
     ]);
 
     let processedTrend: number[] = [];
@@ -471,25 +596,66 @@ async function fetchAllData() {
     rawTopVarian.value = await Promise.all(rawVariantsList.map(async (variant) => {
       let videoLink = '';
       try {
-        const res = await fetchData('list', { group: [selectedExternalGroup.value!], varian: [variant.name] });
+        // Buat objek filter video secara eksplisit
+        const videoFilter: Record<string, any> = {
+          varian: [variant.name]
+        };
+
+        // Hanya masukkan group jika ada isinya
+        if (selectedExternalGroup.value && selectedExternalGroup.value.length > 0) {
+          videoFilter.group = selectedExternalGroup.value;
+        } else {
+          // Jika kosong, gunakan exclude_group agar konsisten dengan data dashboard
+          videoFilter.exclude_group = [internalGroup.value];
+        }
+
+        const res = await fetchData('list', videoFilter);
         if (res?.data?.length > 0) videoLink = res.data[0].video_link;
-      } catch (e) { }
+      } catch (e) {
+        console.error("Gagal load video link:", e);
+      }
       return { ...variant, preview_video: videoLink, logo: createLogo(variant.name) };
     }));
   } catch (error) { console.error(error); } finally { isLoading.value = false; }
 }
-
-watch([startDate, endDate, selectedChannels], async () => {
+watch(
+  [
+    startDate,
+    endDate,
+    selectedExternalGroup,
+    selectedBrand,
+    selectedCategory,
+    selectedSubCategory,
+    selectedVariants
+  ],
+  async () => {
+    // Menjalankan ulang semua fetcher saat ada perubahan filter
+    await Promise.all([
+      fetchOverallExternalData(),
+      fetchAllData(),
+      fetchBrandHighlightsData(),
+      fetchGlobalCompetitorBrands()
+    ]);
+  },
+  { deep: true }
+);
+onMounted(async () => {
   isLoading.value = true;
-  await Promise.all([fetchOverallExternalData(), fetchAllData(), fetchBrandHighlightsData(), fetchGlobalCompetitorBrands()]);
+  
+  // 1. Siapkan data dropdown (ambil dari store/API)
+  await fetchGroupFilterDropdown(); 
+
+  // 2. HAPUS langkah ini! Biarkan filter kosong secara default.
+  // await initializeDefaultFiltersWithExclusion(); <--- SUMBER MASALAH URL KEPANJANGAN
+
+  // 3. Jalankan penarikan data utama
+  await Promise.all([
+    fetchAllData(), 
+    fetchOverallExternalData(), // Pastikan ini juga mengikuti logika dynamicFilter jika perlu
+    fetchBrandHighlightsData(),
+    fetchGlobalCompetitorBrands()
+  ]);
+
   isLoading.value = false;
-}, { deep: true });
-
-watch(selectedExternalGroup, async (newVal) => { if (newVal) await fetchAllData(); });
-
-onMounted(() => {
-  fetchGroupFilterDropdown();
-  fetchGlobalCompetitorBrands();
-  fetchBrandHighlightsData();
 });
 </script>
