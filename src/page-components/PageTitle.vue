@@ -1,12 +1,12 @@
 <template>
-  <v-card class="page-title-card d-flex align-center px-6 py-4 mb-6 mt-n6" :class="colorful ? 'text-white' : ''"
-    :style="cardStyle" elevation="0" width="100%">
+  <v-card class="page-title-card d-flex align-center px-6 py-4 mb-6 mt-n6"
+    :class="colorful ? 'text-white' : 'text-on-surface'" :style="cardStyle" elevation="0" width="100%">
     <div class="d-flex flex-column">
-      <h2 class="text-h5 font-weight-black" style="line-height: 1.1">
+      <h2 class="text-h5 font-weight-black" style="line-height: 1.2">
         {{ title }}
       </h2>
       <span v-if="subtitle" class="text-caption font-weight-bold mt-1" :class="colorful ? 'text-white' : 'text-primary'"
-        style="opacity: 0.8; letter-spacing: 1px; text-transform: uppercase;">
+        style="opacity: 0.9; letter-spacing: 1px; text-transform: uppercase;">
         {{ subtitle }}
       </span>
     </div>
@@ -17,16 +17,16 @@
       <v-menu v-model="filterMenu" :close-on-content-click="false" location="bottom end" offset="10"
         transition="scale-transition">
         <template v-slot:activator="{ props: menuProps }">
-          <v-btn v-bind="menuProps" variant="flat" :color="colorful ? 'rgba(255,255,255,0.2)' : 'white'" border
-            class="rounded-lg text-capitalize font-weight-bold" :class="colorful ? 'text-white border-white' : ''"
-            prepend-icon="mdi-filter-variant">
+          <v-btn v-bind="menuProps" variant="flat" :color="colorful ? 'rgba(255,255,255,0.2)' : 'surface'"
+            class="rounded-lg text-capitalize font-weight-bold filter-btn"
+            :class="colorful ? 'text-white border-white' : 'border'" prepend-icon="mdi-filter-variant">
             Filters
             <v-badge v-if="totalActiveFilters > 0" color="error" :content="totalActiveFilters" inline
               class="ml-2"></v-badge>
           </v-btn>
         </template>
 
-        <v-card width="450" class="rounded-xl shadow-lg border">
+        <v-card width="450" class="rounded-xl border" color="surface">
           <v-card-title class="d-flex justify-space-between align-center pa-4">
             <span class="text-subtitle-1 font-weight-bold">Apply Filters</span>
             <v-btn variant="text" color="error" size="small" @click="resetFilters" :disabled="totalActiveFilters === 0">
@@ -39,14 +39,25 @@
           <v-card-text class="pa-4 overflow-y-auto" style="max-height: 450px">
             <div class="d-flex flex-column ga-4">
               <div v-for="level in activeLevels" :key="level.key">
-                <label class="text-caption font-weight-bold text-uppercase text-grey-darken-1 mb-1 d-block">
+                <label class="filter-label mb-1 d-block">
                   {{ level.label }}
                 </label>
                 <v-select v-model="selections[level.key]" :items="options[level.key]" :loading="loadings[level.key]"
                   :placeholder="`All ${level.label}`" variant="outlined" density="compact" multiple clearable
                   hide-details rounded="lg">
+                  <template v-slot:prepend-item>
+                    <v-list-item title="Select All" @click="toggleSelectAll(level.key)">
+                      <template v-slot:prepend>
+                        <v-checkbox-btn :model-value="isAllSelected(level.key)"
+                          :indeterminate="isSomeSelected(level.key) && !isAllSelected(level.key)"
+                          color="primary"></v-checkbox-btn>
+                      </template>
+                    </v-list-item>
+                    <v-divider class="mt-2"></v-divider>
+                  </template>
+
                   <template v-slot:selection="{ item, index: i }">
-                    <v-chip v-if="i === 0" size="x-small" color="primary">{{ item.title }}</v-chip>
+                    <v-chip v-if="i === 0" size="x-small" color="primary" variant="flat">{{ item.title }}</v-chip>
                     <span v-if="i === 1" class="text-caption ml-1">
                       (+{{ (selections[level.key]?.length || 0) - 1 }})
                     </span>
@@ -57,7 +68,7 @@
           </v-card-text>
 
           <v-divider />
-          <v-card-actions class="pa-4 bg-grey-lighten-4">
+          <v-card-actions class="pa-4 bg-grey-100">
             <v-btn block color="primary" variant="flat" class="rounded-lg font-weight-bold" @click="applyFilters">
               Apply Filters
             </v-btn>
@@ -65,16 +76,15 @@
         </v-card>
       </v-menu>
 
-      <div v-if="showDateFilter" style="width: 280px">
-        <DateRangePicker :from="startDate" :to="endDate" @date-change="setDateRange"
-          :theme="colorful ? 'light' : undefined" />
+      <div v-if="showDateFilter" class="date-picker-wrapper">
+        <DateRangePicker :from="startDate" :to="endDate" @date-change="setDateRange" />
       </div>
     </div>
   </v-card>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useAppStore } from '@/stores/app'
 import { storeToRefs } from 'pinia'
 import { fetchData } from '@/utils/apiBuilder'
@@ -96,6 +106,28 @@ const props = withDefaults(defineProps<{
   enabledFilters: () => ['channel', 'group', 'brand', 'variants', 'kategori', 'sub_kategori'],
   excludeInternal: false
 })
+
+//--Select All Logic--
+const isAllSelected = (key: string) => {
+  const selected = selections.value[key] || [];
+  const available = options.value[key] || [];
+  return selected.length === available.length && available.length > 0;
+}
+
+const isSomeSelected = (key: string) => {
+  return (selections.value[key]?.length || 0) > 0;
+}
+
+const toggleSelectAll = (key: string) => {
+  const available = options.value[key] || [];
+  
+  if (isAllSelected(key)) {
+    selections.value[key] = [];
+  } else {
+    // Pastikan kita meng-assign array yang valid
+    selections.value[key] = [...available];
+  }
+}
 
 const emit = defineEmits(['update:filter'])
 
@@ -136,34 +168,6 @@ const totalActiveFilters = computed(() => {
   return activeLevels.value.reduce((acc, level) => acc + (selections.value[level.key]?.length || 0), 0)
 })
 
-const formatTitle = (text: string) => {
-  if (!text) return '';
-
-  return text.split(' ').map(word => {
-    // 1. Jika kata mengandung angka (misal: TRANS7, TVRI2), biasanya itu brand/channel.
-    // Biarkan tetap sesuai aslinya.
-    if (/\d/.test(word)) {
-      return word;
-    }
-
-    // 2. Deteksi singkatan/akronim (2-4 karakter)
-    // Jika kata aslinya huruf besar semua dan pendek (misal: PT, MNC, RCTI), biarkan tetap besar.
-    if (word === word.toUpperCase() && word.length >= 2 && word.length <= 4) {
-      return word;
-    }
-
-    // 3. Deteksi CamelCase (misal: TransTV, ShopeePay)
-    // Kalau ada huruf besar di tengah kata, jangan diganggu.
-    if (/[a-z][A-Z]/.test(word)) {
-      return word;
-    }
-
-    // 4. Sisanya adalah kata reguler (misal: BUAVITA, indomie, mangga)
-    // Kita ubah jadi Title Case (Depan besar, sisanya kecil).
-    const lower = word.toLowerCase();
-    return lower.charAt(0).toUpperCase() + lower.slice(1);
-  }).join(' ');
-};
 
 /**
  * Memanggil API hanya untuk filter yang diaktifkan
@@ -184,18 +188,6 @@ async function loadFilterOptions() {
       if (Array.isArray(data)) {
         let rawItems = data.map(item => item.name || item.title).filter(Boolean);
 
-        // MODIFIKASI DI SINI:
-        rawItems = rawItems.map(name => {
-          // Khusus untuk kategori channel, paksa besar semua (RCTI, SCTV, dsb)
-          if (level.key === 'channel') {
-            return name.toUpperCase();
-          }
-          // Untuk kategori lainnya (Brand, Group, dll), gunakan fungsi pintar
-          return formatTitle(name);
-        });
-
-        // MENGGUNAKAN FUNGSI PINTAR (Format Title)
-        rawItems = rawItems.map(name => formatTitle(name));
 
         const internalGroupName = internalGroup.value?.toLowerCase() || '';
 
@@ -214,8 +206,7 @@ async function loadFilterOptions() {
 
           // Fallback jika kosong
           if (rawItems.length === 0) {
-            const allFormatted = data.map(item => formatTitle(item.name || item.title)).filter(Boolean);
-            rawItems = [...new Set(allFormatted)].sort();
+            rawItems = data.map(item => item.name || item.title).filter(Boolean);
           }
         }
 
@@ -273,13 +264,38 @@ watch([() => props.enabledFilters, internalGroup], () => {
 
 <style scoped>
 .page-title-card {
-  border-radius: 20px !important;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.04) !important;
-  transition: all 0.3s ease;
+  border-radius: 16px !important;
+  /* Border tipis menggunakan variabel border color tema */
+  border: 1px solid rgba(var(--v-border-color), 0.1) !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05) !important;
+}
+
+.filter-btn {
+  /* Memastikan tombol filter punya border yang jelas saat mode light */
+  border: 1px solid rgba(var(--v-border-color), 0.2) !important;
+}
+
+.filter-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  /* Menggunakan warna abu-abu dari config */
+  color: rgb(var(--v-theme-grey-500));
+}
+
+.date-picker-wrapper {
+  width: 280px;
 }
 
 .gap-3 {
   display: flex;
   gap: 12px;
+}
+
+/* Transisi warna saat ganti tema */
+.page-title-card,
+.v-card {
+  transition: background 0.3s ease, color 0.3s ease !important;
 }
 </style>

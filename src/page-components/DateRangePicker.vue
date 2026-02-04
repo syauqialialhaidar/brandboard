@@ -203,20 +203,8 @@ watch(props, () => {
 
 <style>
 .dp__main * {
-  font-family:
-    "Public Sans",
-    sans-serif,
-    -apple-system,
-    blinkmacsystemfont,
-    "Segoe UI",
-    roboto,
-    "Helvetica Neue",
-    arial,
-    "Apple Color Emoji",
-    "Segoe UI Emoji",
-    "Segoe UI Symbol" !important;
+  font-family: "Poppins", sans-serif !important;
 }
-
 .dp__month_year_wrap {
   font-size: 16px !important;
   font-weight: 600 !important;
@@ -229,19 +217,9 @@ watch(props, () => {
 
 .dp__menu {
   border-radius: 10px !important;
-  font-family:
-    "Public Sans",
-    sans-serif,
-    -apple-system,
-    blinkmacsystemfont,
-    "Segoe UI",
-    roboto,
-    "Helvetica Neue",
-    arial,
-    "Apple Color Emoji",
-    "Segoe UI Emoji",
-    "Segoe UI Symbol" !important;
+  font-family: "Poppins", sans-serif !important;
 }
+
 
 .dp__arrow_top {
   border-block-start: 1px solid rgb(247, 244, 244);
@@ -253,18 +231,7 @@ watch(props, () => {
 }
 
 .dp__time_col {
-  font-family:
-    "Public Sans",
-    sans-serif,
-    -apple-system,
-    blinkmacsystemfont,
-    "Segoe UI",
-    roboto,
-    "Helvetica Neue",
-arial,
-    "Apple Color Emoji",
-    "Segoe UI Emoji",
-    "Segoe UI Symbol" !important;
+  font-family: "Poppins", sans-serif !important;
   font-size: 14px !important;
 }
 

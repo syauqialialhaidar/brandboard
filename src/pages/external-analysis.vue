@@ -5,64 +5,103 @@
       @update:filter="handleFilterUpdate" />
 
     <div>
-      <!-- <h2 class="text-h6 font-weight-bold mb-4">General External Overview</h2>
-      <v-row class="mb-6">
-        <v-col v-for="(card, i) in overallMetricCards" :key="card.title" cols="12" sm="6" md="3">
+      <v-row class="mb-2">
+        <v-col v-for="(card, i) in externalMetricCards" :key="card.title" cols="12" sm="6" md="3">
           <MetricCard :title="card.title" :value="card.value" :icon="card.icon" :index="i" :trend-data="card.trendData"
             :labels="card.labels" />
         </v-col>
       </v-row>
 
-      <div class="d-flex flex-wrap align-center my-6 ga-4">
-        <div class="text-h6 font-weight-bold">All Competitor Brands</div>
+      <div class="d-flex align-center mb-4 ga-2">
+        <div class="text-h5 font-weight-bold">Brand and Variants Distribution</div>
       </div>
 
-      <v-row class="mb-8">
-        <v-col cols="12">
-          <HighlightsCarousel total-title="Total Brand Mentions" item-label="Brands" :show-total="true"
-            :total-value="brandMentionsTotalValue" :total-items-count="brandMentionsCount"
-            :items="brandMentionsHighlights" :start-date="startDate" :end-date="endDate" :show-modal="showModal"
-            :selected-item="selectedItem" :active-video="videoList[0]" :is-loading-detail="isVideoLoading"
-            @close-modal="showModal = false" @item-click="handleBrandHighlightClick" />
-        </v-col>
-      </v-row> -->
-
-
-      <v-row>
-        <v-col v-for="(card, i) in externalMetricCards" :key="card.title" cols="12" sm="6" md="4">
-          <MetricCard :title="card.title" :value="card.value" :icon="card.icon" :index="i" :trend-data="card.trendData"
-            :labels="card.labels" />
-        </v-col>
-      </v-row>
-
-
-      <v-row class="mt-2">
+      <v-row class="d-flex mb-4">
         <v-col cols="12" md="4">
-          <PieChartCard :title="externalPieTitle" :data="externalPieData" :has-legend="true" :is-loading="isLoading" />
+          <v-card class="h-100 rounded-xl d-flex flex-column" variant="flat">
+            <div class="pa-4 d-flex align-center justify-space-between">
+              <div class="text-subtitle-1 font-weight-bold">Top 10 Brand Distribution</div>
+              <v-btn-toggle v-model="brandDistType" density="compact" mandatory color="primary" variant="tonal" class="rounded-lg">
+                <v-btn value="pie" icon size="x-large"><v-icon size="small">mdi-chart-pie</v-icon></v-btn>
+                <v-btn value="bar" icon size="x-large"><v-icon size="small">mdi-chart-bar</v-icon></v-btn>
+              </v-btn-toggle>
+            </div>
+            <v-divider />
+            <div class="pa-4 flex-grow-1">
+              <PieChartCard v-if="brandDistType === 'pie'" title="" :data="externalPieData" :has-legend="true"
+                :is-loading="isLoading" />
+              
+              <BarChartCard v-else title="" 
+                :data="[{ label: 'Mentions', values: externalPieData.map(d => d.value) }]" 
+                :segment-labels="externalPieData.map(d => d.label)"
+                :is-loading="isLoading" />
+            </div>
+          </v-card>
         </v-col>
+
         <v-col cols="12" md="8">
-          <LineChartCard title="Brand Trends" :labels="brandTrendLabels" :data="externalLineData"
-            :is-loading="isLoading" />
+          <v-card class="h-100 rounded-xl d-flex flex-column" variant="flat">
+            <div class="pa-4">
+              <div class="text-subtitle-1 font-weight-bold">Brand Trends</div>
+            </div>
+            <v-divider />
+            <div class="pa-4 flex-grow-1">
+              <LineChartCard title="" :labels="brandTrendLabels" :data="externalLineData"
+                :is-loading="isLoading" />
+            </div>
+          </v-card>
         </v-col>
       </v-row>
 
-      <v-row class="mt-2">
-        <v-col cols="12" md="5">
-          <TableCard title="Brand Ranking" :headers="['Brand']" :rows="brandRankingData" :per-page="5" />
+      <v-row class="mt-2 mb-4 d-flex">
+        <v-col cols="12" md="4">
+          <TableCard title="Brand Ranking" :headers="['Brand']" :rows="brandRankingData" :per-page="5" class="h-100 rounded-xl" />
         </v-col>
-        <v-col cols="12" md="7">
-          <BarChartCard :title="externalBarTitle" :data="variantDistributionData"
-            :segment-labels="variantDistributionSegments" :is-loading="isLoading" />
+
+        <v-col cols="12" md="8">
+          <v-card class="h-100 rounded-xl d-flex flex-column" variant="flat">
+            <div class="pa-4 d-flex align-center justify-space-between">
+              <div class="text-subtitle-1 font-weight-bold">Brand Variants Distribution</div>
+              <v-btn-toggle v-model="variantDistType" density="compact" mandatory color="primary" variant="tonal" class="rounded-lg">
+                <v-btn value="pie" icon size="x-large"><v-icon size="small">mdi-chart-pie</v-icon></v-btn>
+                <v-btn value="bar" icon size="x-large"><v-icon size="small">mdi-chart-bar</v-icon></v-btn>
+              </v-btn-toggle>
+            </div>
+            <v-divider />
+            <div class="pa-4 flex-grow-1">
+              <BarChartCard v-if="variantDistType === 'bar'" title="" 
+                :data="variantDistributionData"
+                :segment-labels="variantDistributionSegments" 
+                :is-loading="isLoading" 
+                :is-stacked="true"/>
+              
+              <PieChartCard v-else title="" 
+                :data="variantDistributionData.map(d => ({ 
+                  label: d.label, 
+                  value: d.values.reduce((a, b) => a + b, 0) 
+                }))"
+                :has-legend="true" 
+                :is-loading="isLoading" />
+            </div>
+          </v-card>
         </v-col>
       </v-row>
 
       <v-row class="mb-6" align="stretch">
         <v-col cols="12" md="4">
-          <TableCard title="Brand Variant Data" :headers="['Brand Variant']" :rows="variantRankingData" :per-page="5" />
+          <TableCard title="Brand Variant Data" :headers="['Brand Variant']" :rows="variantRankingData" :per-page="5" class="h-100 rounded-xl" />
         </v-col>
         <v-col cols="12" md="8">
-          <LineChartCard title="Brand Variant Trends" :labels="variantTrendLabels" :data="variantTrendData"
-            :is-loading="isLoading" />
+          <v-card class="h-100 rounded-xl d-flex flex-column" variant="flat">
+             <div class="pa-4">
+               <div class="text-subtitle-1 font-weight-bold">Brand Variant Trends</div>
+             </div>
+             <v-divider />
+             <div class="pa-4 flex-grow-1">
+               <LineChartCard title="" :labels="variantTrendLabels" :data="variantTrendData"
+                 :is-loading="isLoading" />
+             </div>
+          </v-card>
         </v-col>
       </v-row>
 
@@ -75,52 +114,128 @@
             @item-click="handleItemClick" />
         </v-col>
       </v-row>
-      <v-row class="mb-8">
-        <v-col cols="12" md="4">
-          <TableCard title="Top Program" :headers="['Program Name']" :rows="topPrograms" :per-page="5"
+
+      <div class="d-flex align-center mb-4 ga-2">
+        <div class="text-h5 font-weight-bold">Media and Audience</div>
+      </div>
+
+      <v-row class="mb-4">
+        <v-col cols="12" md="6">
+          <TableMinim title="Top Program" :headers="['Name', 'Channel']" :rows="topPrograms" :per-page="5"
             class="h-100 rounded-xl" />
         </v-col>
-
-        <v-col cols="12" md="4">
-          <TableCard title="Top Brand Ambasador" :headers="['Program Name']" :rows="topPrograms" :per-page="5"
+        <v-col cols="12" md="6">
+          <TableMinim title="Top Brand Ambasador" :headers="['Name']" :rows="topBrandAmbasador" view-mode="minimal" :per-page="5"
             class="h-100 rounded-xl" />
-        </v-col>
-
-        <v-col cols="12" md="4" class="d-flex flex-column">
-          <v-row>
-            <v-col cols="12">
-              <MetricCard title="Rate Card" value="3.m" icon="mdi-video" :trend-data="[10, 20, 15, 25, 30]"
-                class="rounded-xl" />
-            </v-col>
-            <v-col cols="12">
-              <MetricCard title="Total Reach" value="1.2M" icon="mdi-trending-up" :trend-data="[5, 15, 10, 20, 25]"
-                class="rounded-xl" />
-            </v-col>
-          </v-row>
         </v-col>
       </v-row>
 
-      <h2 class="text-h6 font-weight-bold mb-4">Distributions</h2>
       <v-row class="mb-2">
-        <v-col cols="12" md="4">
-          <PieChartCard title="Gender" :data="dummyGenderData" :has-legend="true" suffix="%" />
+        
+        <v-col cols="12" md="6">
+          <v-card class="h-100 rounded-xl d-flex flex-column" variant="flat">
+            <div class="pa-4 d-flex align-center justify-space-between">
+              <div class="text-subtitle-1 font-weight-bold">Gender</div>
+              <v-btn-toggle v-model="genderChartType" density="compact" mandatory color="primary" variant="tonal" class="rounded-lg">
+                <v-btn value="pie" icon size="x-large"><v-icon size="small">mdi-chart-pie</v-icon></v-btn>
+                <v-btn value="bar" icon size="x-large"><v-icon size="small">mdi-chart-bar</v-icon></v-btn>
+              </v-btn-toggle>
+            </div>
+            <v-divider />
+            <div class="pa-4 flex-grow-1">
+              <PieChartCard v-if="genderChartType === 'pie'" title="" :data="dummyGenderData" :has-legend="true" suffix="%" />
+              <BarChartCard v-else title="" 
+                :data="[{ label: 'Gender', values: dummyGenderData.map(d => d.value) }]" 
+                :segment-labels="dummyGenderData.map(d => d.label)" suffix="%" />
+            </div>
+          </v-card>
         </v-col>
-        <v-col cols="12" md="4">
-          <BarChartCard title="Age" :data="dummyAgeData.data" :segment-labels="dummyAgeData.segments" suffix="%" />
+
+        <v-col cols="12" md="6">
+          <v-card class="h-100 rounded-xl d-flex flex-column" variant="flat">
+            <div class="pa-4 d-flex align-center justify-space-between">
+              <div class="text-subtitle-1 font-weight-bold">Age</div>
+              <v-btn-toggle v-model="ageChartType" density="compact" mandatory color="primary" variant="tonal" class="rounded-lg">
+                <v-btn value="pie" icon size="x-large"><v-icon size="small">mdi-chart-pie</v-icon></v-btn>
+                <v-btn value="bar" icon size="x-large"><v-icon size="small">mdi-chart-bar</v-icon></v-btn>
+              </v-btn-toggle>
+            </div>
+            <v-divider />
+            <div class="pa-4 flex-grow-1">
+              <BarChartCard v-if="ageChartType === 'bar'" title="" :data="dummyAgeData.data" :segment-labels="dummyAgeData.segments" suffix="%" />
+              <PieChartCard v-else title="" 
+                :data="dummyAgeData.segments.map((label, i) => ({ label, value: dummyAgeData.data[0].values[i] }))" 
+                :has-legend="true" suffix="%" />
+            </div>
+          </v-card>
         </v-col>
-        <v-col cols="12" md="4">
-          <PieChartCard title="Location" :data="dummyLocationData" :has-legend="true" />
+
+        
+      </v-row>
+
+      <v-row class="mb-2"><v-col cols="12" md="6">
+          <v-card class="h-100 rounded-xl d-flex flex-column" variant="flat">
+            <div class="pa-4 d-flex align-center justify-space-between">
+              <div class="text-subtitle-1 font-weight-bold">Location</div>
+              <v-btn-toggle v-model="locationChartType" density="compact" mandatory color="primary" variant="tonal" class="rounded-lg">
+                <v-btn value="pie" icon size="x-large"><v-icon size="small">mdi-chart-pie</v-icon></v-btn>
+                <v-btn value="bar" icon size="x-large"><v-icon size="small">mdi-chart-bar</v-icon></v-btn>
+              </v-btn-toggle>
+            </div>
+            <v-divider />
+            <div class="pa-4 flex-grow-1">
+              <PieChartCard v-if="locationChartType === 'pie'" title="" :data="dummyLocationData" :has-legend="true" />
+              <BarChartCard v-else title="" 
+                :data="[{ label: 'Total', values: dummyLocationData.map(d => d.value) }]" 
+                :segment-labels="dummyLocationData.map(d => d.label)" />
+            </div>
+          </v-card>
         </v-col>
-        <v-col cols="12" md="4">
-          <PieChartCard title="Zone Time" :data="dummyTimezoneData" :has-legend="true" suffix="%" />
+        <v-col cols="12" md="6">
+          <TableMinim title="Program Types" :headers="['Name', 'Mention']" :rows="dummyProgramType" :per-page="5"
+            class="rounded-xl h-100" />
         </v-col>
-        <v-col cols="12" md="4">
-          <BarChartCard title="Scope" :data="dummyScopeData.data" :segment-labels="dummyScopeData.segments" />
+      </v-row>
+      <v-row class="mb-2">
+        <v-col cols="12" md="6">
+          <v-card class="h-100 rounded-xl d-flex flex-column" variant="flat">
+            <div class="pa-4 d-flex align-center justify-space-between">
+              <div class="text-subtitle-1 font-weight-bold">Zone Time</div>
+              <v-btn-toggle v-model="timezoneChartType" density="compact" mandatory color="primary" variant="tonal" class="rounded-lg">
+                <v-btn value="pie" icon size="x-large"><v-icon size="small">mdi-chart-pie</v-icon></v-btn>
+                <v-btn value="bar" icon size="x-large"><v-icon size="small">mdi-chart-bar</v-icon></v-btn>
+              </v-btn-toggle>
+            </div>
+            <v-divider />
+            <div class="pa-4 flex-grow-1">
+              <PieChartCard v-if="timezoneChartType === 'pie'" title="" :data="dummyTimezoneData" :has-legend="true" suffix="%" />
+              <BarChartCard v-else title="" 
+                :data="[{ label: 'Total', values: dummyTimezoneData.map(d => d.value) }]" 
+                :segment-labels="dummyTimezoneData.map(d => d.label)" suffix="%" />
+            </div>
+          </v-card>
         </v-col>
-        <v-col cols="12" md="4">
-          <TableCard title="Program Types" :headers="['Type Name', 'Mention']" :rows="dummyProgramType" :per-page="5"
-            class="rounded-xl" />
+
+        <v-col cols="12" md="6">
+          <v-card class="h-100 rounded-xl d-flex flex-column" variant="flat">
+            <div class="pa-4 d-flex align-center justify-space-between">
+              <div class="text-subtitle-1 font-weight-bold">Scope</div>
+              <v-btn-toggle v-model="scopeChartType" density="compact" mandatory color="primary" variant="tonal" class="rounded-lg">
+                <v-btn value="pie" icon size="x-large"><v-icon size="small">mdi-chart-pie</v-icon></v-btn>
+                <v-btn value="bar" icon size="x-large"><v-icon size="small">mdi-chart-bar</v-icon></v-btn>
+              </v-btn-toggle>
+            </div>
+            <v-divider />
+            <div class="pa-4 flex-grow-1">
+              <BarChartCard v-if="scopeChartType === 'bar'" title="" :data="dummyScopeData.data" :segment-labels="dummyScopeData.segments" />
+              <PieChartCard v-else title="" 
+                :data="dummyScopeData.segments.map((label, i) => ({ label, value: dummyScopeData.data[0].values[i] }))" 
+                :has-legend="true" />
+            </div>
+          </v-card>
         </v-col>
+
+        
       </v-row>
 
     </div>
@@ -141,6 +256,7 @@ import moment from 'moment';
 import { useAppStore } from '@/stores/app';
 import { storeToRefs } from 'pinia';
 import { fetchData } from '@/utils/apiBuilder';
+import TableMinim from '@/page-components/TableMinim.vue';
 
 // --- Interfaces ---
 interface HighlightItem { logo: string; name: string; count: number | string; preview_video?: string; }
@@ -163,7 +279,7 @@ const dummyGenderData = ref([
 const dummyAgeData = ref({
   segments: ['Kids (0-12)', 'Teens (13-18)', 'Adults (19-45)', 'Seniors (45+)'],
   data: [
-    { label: 'Audience Share', values: [15, 25, 45, 15] }
+    { label: 'Audience', values: [15, 25, 45, 15] }
   ]
 });
 
@@ -203,6 +319,14 @@ const topPrograms = ref([
   { name: 'Amanah Wali', mention: '48%' },
 ]);
 
+const topBrandAmbasador = ref([
+  { name: 'Raffi Ahmad', mention: '95%' },
+  { name: 'Nagita Slavina', mention: '88%' },
+  { name: 'Deddy Corbuzier', mention: '75%' },
+  { name: 'Agnez Mo', mention: '65%' },
+  { name: 'Maudy Ayunda', mention: '50%' },
+]);
+
 // --- State Management ---
 const appStore = useAppStore();
 const { 
@@ -227,9 +351,19 @@ const brandMentionsHighlights = ref<HighlightItem[]>([]);
 const brandMentionsTotalValue = ref<number | string>(0);
 const brandMentionsCount = ref<number>(0);
 
+//--TOGGLE FILTERS--
+const brandDistType = ref('pie');   
+const variantDistType = ref('bar'); 
+// Media & Audience Toggles
+const genderChartType = ref('pie');
+const ageChartType = ref('bar');
+const locationChartType = ref('pie');
+const timezoneChartType = ref('pie');
+const scopeChartType = ref('bar');
 
 
-// Tambahkan state ini
+
+//--- Filter States ---
 const selectedExternalGroup = ref<string[]>([]);
 const selectedBrand = ref<string[]>([]);
 const selectedCategory = ref<string[]>([]);
@@ -375,6 +509,7 @@ const externalMetricCards = ref<MetricCardItem[]>([
   { title: 'Total Group Ads', value: '...', icon: 'mdi-chart-pie', trendData: [], labels: [] },
   { title: 'Total of Brands', value: '...', icon: 'mdi-tag', trendData: [], labels: [] },
   { title: 'Total of Variants', value: '...', icon: 'mdi-tag-multiple', trendData: [], labels: [] },
+  { title: 'Total Spanding', value: '...', icon: 'mdi-cash-multiple', trendData: [], labels: [] },
 ]);
 
 const rawTopBrand = ref<TableRow[]>([]);
@@ -585,6 +720,7 @@ async function fetchAllData() {
       { title: 'Total Group Ads', value: totalAds?.total || 0, icon: 'mdi-chart-pie', trendData: processedTrend, labels: processedLabels },
       { title: 'Total of Brands', value: totalBrands?.total || 0, icon: 'mdi-tag', trendData: [...processedTrend].reverse(), labels: processedLabels },
       { title: 'Total of Variants', value: totalVariants?.total || 0, icon: 'mdi-tag-multiple', trendData: processedTrend.map(v => Math.floor(v * 0.8)), labels: processedLabels },
+      { title: 'Total Spanding', value: '...', icon: 'mdi-cash-multiple', trendData: processedTrend.map(v => v * 100), labels: processedLabels },
     ];
 
     rawTopBrand.value = transformApiResponse(topBrandData);

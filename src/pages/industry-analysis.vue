@@ -10,7 +10,7 @@
           :is-loading="isLoading" class="h-100 rounded-xl" />
       </v-col>
       <v-col cols="12" lg="5">
-        <TableCard title="Top Program TV" :headers="['Name']" :rows="dummyPrograms" class="h-100 rounded-xl" />
+        <TableMinim title="Top Program TV" :headers="['Name']" :rows="dummyPrograms" class="h-100 rounded-xl" />
       </v-col>
     </v-row>
 
@@ -45,14 +45,14 @@
           suffix="%" class="h-100 rounded-xl" />
       </v-col>
       <v-col cols="12" lg="6">
-        <TableCard title="Top Brand Ambassador" :headers="['Name', 'Mentions']" :rows="dummyAmbassadors"
+        <TableMinim title="Top Brand Ambassador" :headers="['Name', 'Mentions']" :rows="dummyAmbassadors"
           class="h-100 rounded-xl" />
       </v-col>
     </v-row>
 
     <v-row class="mb-8">
       <v-col cols="12" md="5">
-        <TableCard title="Program Types" :headers="['Type']" :rows="dummyProgramTypes" class="h-100 rounded-xl" />
+        <TableMinim title="Program Types" :headers="['Name']" :rows="dummyProgramTypes" class="h-100 rounded-xl" />
       </v-col>
       <v-col cols="12" md="4">
         <BarChartCard title="Scope Penyiaran" :data="dummyScopeData.data" :segment-labels="dummyScopeData.segments"
@@ -94,6 +94,7 @@ import PieChartCard from '@/page-components/PieChartCard.vue';
 import LineChartCard from '@/page-components/LineChartCard.vue';
 import BarChartCard from '@/page-components/BarChartCard.vue';
 import HighlightsCarousel from '@/page-components/HighlightsCarousel.vue';
+import TableMinim from '@/page-components/TableMinim.vue';
 
 
 interface PieChartItem {

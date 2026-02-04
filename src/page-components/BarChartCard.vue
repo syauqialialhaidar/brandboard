@@ -1,8 +1,8 @@
 <template>
-  <v-card class="pa-0 pb-4 premium-bar-card overflow-hidden d-flex flex-column" elevation="0" color="surface"
-    style="height: 100%;">
-    <div class="d-flex flex-wrap align-center pa-4 ga-4">
-      <v-card-title class="text-subtitle-1 font-weight-bold pa-0">{{ title }}</v-card-title>
+  <div class="pa-0 pb-4 d-flex flex-column" style="height: 100%;">
+    
+    <div class="d-flex flex-wrap align-center pb-4 ga-4">
+      <div class="text-subtitle-1 font-weight-bold">{{ title }}</div>
       <v-spacer></v-spacer>
       <v-btn-toggle v-if="showToggle" :model-value="toggle" @update:model-value="$emit('toggle-change', $event)"
         density="compact" divided>
@@ -11,16 +11,16 @@
         <v-btn value="bottom10" class="text-capitalize px-3">Bottom 10</v-btn>
       </v-btn-toggle>
     </div>
-    <v-divider class="mb-4"></v-divider>
-    <v-card-text class="pa-4 d-flex flex-column flex-grow-1">
+
+    <div class="flex-grow-1" style="min-height: 350px;">
       <template v-if="!isLoading && hasData">
         <BarChart :labels="chartLabels" :datasets="chartDatasets" :options="barChartOptions" />
       </template>
       <div v-else-if="isLoading" class="d-flex justify-center align-center fill-height">
         <v-progress-circular indeterminate color="primary"></v-progress-circular>
       </div>
-    </v-card-text>
-  </v-card>
+    </div>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -28,7 +28,7 @@ import { computed } from 'vue';
 import BarChart from '@/page-components/charts/BarChart.vue';
 import { generateBrightColors } from '@/utils/colors';
 
-const props = defineProps(['title', 'data', 'segmentLabels', 'isLoading', 'showToggle', 'toggle']);
+const props = defineProps(['title', 'data', 'segmentLabels', 'isLoading', 'showToggle', 'toggle', 'isStacked']);
 const emit = defineEmits(['click-bar', 'toggle-change']);
 
 const chartLabels = computed(() => props.data?.map((item: any) => item.label) || []);
@@ -89,23 +89,20 @@ const barChartOptions = computed(() => ({
   },
   scales: {
     x: {
-      stacked: true, // WAJIB TRUE agar trik "Diagonal" bekerja visualnya
+      // Gunakan props.isStacked di sini
+      stacked: props.isStacked, 
       display: true,
-      grid: {
-        display: false // Opsional: Hilangkan garis grid vertikal biar bersih
-      },
+      grid: { display: false },
       ticks: {
-        // Anda bisa set true jika ingin nama muncul di bawah batang juga
-        // atau false jika cukup lihat dari Legend warna
-        display: false,
+        // Jika tidak stacked (normal), biasanya label X harus muncul agar jelas
+        display: props.isStacked ? false : true, 
       }
     },
     y: {
-      stacked: true, // WAJIB TRUE
+      // Gunakan props.isStacked di sini
+      stacked: props.isStacked, 
       beginAtZero: true,
-      ticks: {
-        font: { size: 10 }
-      }
+      ticks: { font: { size: 10 } }
     }
   }
 } as any));

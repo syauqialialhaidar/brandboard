@@ -1,30 +1,29 @@
 <template>
-  <v-card class="pa-0 pb-4 premium-chart-card overflow-hidden d-flex flex-column" elevation="0" color="surface"
-    style="height: 100%;">
-    <div class="d-flex flex-wrap align-center pa-4">
-      <v-card-title class="text-subtitle-1 font-weight-bold pa-0">
+  <div class="pa-0 pb-4 d-flex flex-column" style="height: 100%;">
+    <div class="d-flex flex-wrap align-center pb-4">
+      <div class="text-subtitle-1 font-weight-bold">
         {{ title }}
-      </v-card-title>
+      </div>
     </div>
 
-    <v-divider />
-
-    <v-card-text class="pa-4 d-flex flex-column">
+    <div class="flex-grow-1 d-flex flex-column" style="min-height: 300px;">
       <template v-if="!isLoading && hasData">
         <PieChart :data="data" :colors="colors" :options="chartOptions" />
       </template>
+      
       <template v-else-if="isLoading">
         <div class="d-flex justify-center align-center fill-height">
           <v-progress-circular indeterminate color="primary" size="64"></v-progress-circular>
         </div>
       </template>
+
       <template v-else>
         <div class="d-flex justify-center align-center fill-height text-grey-darken-1">
           No data available.
         </div>
       </template>
-    </v-card-text>
-  </v-card>
+    </div>
+  </div>
 </template>
 
 <script setup lang="ts">

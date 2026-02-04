@@ -23,6 +23,7 @@ declare module 'vue-router/auto-routes' {
     '/general-analysis': RouteRecordInfo<'/general-analysis', '/general-analysis', Record<never, never>, Record<never, never>>,
     '/industry-analysis': RouteRecordInfo<'/industry-analysis', '/industry-analysis', Record<never, never>, Record<never, never>>,
     '/internal-analysis': RouteRecordInfo<'/internal-analysis', '/internal-analysis', Record<never, never>, Record<never, never>>,
+    '/login': RouteRecordInfo<'/login', '/login', Record<never, never>, Record<never, never>>,
   }
 
   /**
@@ -54,6 +55,10 @@ declare module 'vue-router/auto-routes' {
     }
     'src/pages/internal-analysis.vue': {
       routes: '/internal-analysis'
+      views: never
+    }
+    'src/pages/login.vue': {
+      routes: '/login'
       views: never
     }
   }

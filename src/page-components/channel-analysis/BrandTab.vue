@@ -19,7 +19,7 @@
       <v-col cols="12">
         <BarChartCard title="Corporate & Brand in Channel" :data="corporateBrandData"
           :segment-labels="corporateBrandSegments" :is-loading="isLoading" :show-toggle="true" :toggle="barChartToggle"
-          @toggle-change="barChartToggle = $event" />
+          @toggle-change="barChartToggle = $event" :is-stacked="true"  />
       </v-col>
     </v-row>
 

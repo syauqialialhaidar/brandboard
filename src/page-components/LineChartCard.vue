@@ -9,8 +9,8 @@
 
       <v-btn-toggle v-if="showToggle" :model-value="toggle" @update:model-value="$emit('toggle-change', $event)"
         density="compact" divided>
-        <v-btn value="top10" class="text-capitalize px-3" style="height: 32px;">Top 10</v-btn>
         <v-btn value="all" class="text-capitalize px-3" style="height: 32px;">All</v-btn>
+        <v-btn value="top10" class="text-capitalize px-3" style="height: 32px;">Top 10</v-btn>
         <v-btn value="bottom10" class="text-capitalize px-3" style="height: 32px;">Bottom 10</v-btn>
       </v-btn-toggle>
     </div>
