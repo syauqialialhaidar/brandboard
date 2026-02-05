@@ -121,12 +121,12 @@ const processedCards = computed(() => [
     trendData: trendData.value.map(v => Math.round(v / 2)),
     labels: trendLabels.value
   },
-  {
-    title: 'Total Spending',
-    value: '...', // Update bagian ini jika ada API spending
-    icon: 'mdi-cash-multiple',
-    trendData: trendData.value.map(v => Math.max(1, Math.round(v / 10))),
-    labels: trendLabels.value
-  },
+  // {
+  //   title: 'Total Spending',
+  //   value: '...', // Update bagian ini jika ada API spending
+  //   icon: 'mdi-cash-multiple',
+  //   trendData: trendData.value.map(v => Math.max(1, Math.round(v / 10))),
+  //   labels: trendLabels.value
+  // },
 ]);
 </script>

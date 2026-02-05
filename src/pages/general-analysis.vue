@@ -416,6 +416,9 @@ const rawInternalVariants = ref<any[]>([]);
 const rawTimezoneData = ref<any[]>([]);
 const rawScopeData = ref<any[]>([]);
 
+
+
+
 //===filter
 const selectedGroups = ref([]);
 const selectedBrands = ref([]);
@@ -423,13 +426,20 @@ const selectedVariants = ref([]);
 const selectedCategory = ref([]);
 const selectedSubCategory = ref([]);
 const handleFilterUpdate = async (newFilters) => {
+  // 1. Update variabel lokal (yang sudah ada)
   if (newFilters.group !== undefined) selectedGroups.value = newFilters.group;
   if (newFilters.brand !== undefined) selectedBrands.value = newFilters.brand;
   if (newFilters.variants !== undefined) selectedVariants.value = newFilters.variants;
   if (newFilters.kategori !== undefined) selectedCategory.value = newFilters.kategori;
   if (newFilters.sub_kategori !== undefined) selectedSubCategory.value = newFilters.sub_kategori;
 
-  await fetchGlobalData(); // Panggil ulang API dengan filter baru
+  // 2. PENTING: Update selectedChannels di Pinia Store agar watch terpicu
+  if (newFilters.channel !== undefined) {
+    appStore.selectedChannels = newFilters.channel; 
+  }
+
+  // 3. Panggil ulang API
+  await fetchGlobalData(); 
 };
 
 
@@ -942,6 +952,9 @@ function handleFilterChange(payload: any) {
 async function fetchGlobalData() {
   // 1. Membangun Objek Filter Dinamis
   const dynamicFilter = {};
+  if (selectedChannels.value && selectedChannels.value.length > 0) {
+    dynamicFilter.channel = selectedChannels.value;
+  }
   if (selectedGroups.value.length > 0) dynamicFilter.group = selectedGroups.value;
   if (selectedBrands.value.length > 0) dynamicFilter.brand = selectedBrands.value;
   if (selectedVariants.value.length > 0) dynamicFilter.varian = selectedVariants.value;
@@ -1047,14 +1060,14 @@ async function fetchGlobalData() {
         icon: 'mdi-tag-multiple',
         trendData: filledTrendData.map(v => Math.floor(v * 0.8)),
         labels: chartLabels
-      },
-      {
-        title: 'Total Spending',
-        value: formattedRateCard.value,
-        icon: 'mdi-cash-multiple',
-        trendData: filledTrendData,
-        labels: chartLabels
       }
+      // {
+      //   title: 'Total Spending',
+      //   value: formattedRateCard.value,
+      //   icon: 'mdi-cash-multiple',
+      //   trendData: filledTrendData,
+      //   labels: chartLabels
+      // }
     ];
 
     // 5. Update Carousel Highlights

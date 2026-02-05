@@ -509,7 +509,7 @@ const externalMetricCards = ref<MetricCardItem[]>([
   { title: 'Total Group Ads', value: '...', icon: 'mdi-chart-pie', trendData: [], labels: [] },
   { title: 'Total of Brands', value: '...', icon: 'mdi-tag', trendData: [], labels: [] },
   { title: 'Total of Variants', value: '...', icon: 'mdi-tag-multiple', trendData: [], labels: [] },
-  { title: 'Total Spanding', value: '...', icon: 'mdi-cash-multiple', trendData: [], labels: [] },
+  // { title: 'Total Spanding', value: '...', icon: 'mdi-cash-multiple', trendData: [], labels: [] },
 ]);
 
 const rawTopBrand = ref<TableRow[]>([]);
@@ -720,7 +720,7 @@ async function fetchAllData() {
       { title: 'Total Group Ads', value: totalAds?.total || 0, icon: 'mdi-chart-pie', trendData: processedTrend, labels: processedLabels },
       { title: 'Total of Brands', value: totalBrands?.total || 0, icon: 'mdi-tag', trendData: [...processedTrend].reverse(), labels: processedLabels },
       { title: 'Total of Variants', value: totalVariants?.total || 0, icon: 'mdi-tag-multiple', trendData: processedTrend.map(v => Math.floor(v * 0.8)), labels: processedLabels },
-      { title: 'Total Spanding', value: '...', icon: 'mdi-cash-multiple', trendData: processedTrend.map(v => v * 100), labels: processedLabels },
+      // { title: 'Total Spanding', value: '...', icon: 'mdi-cash-multiple', trendData: processedTrend.map(v => v * 100), labels: processedLabels },
     ];
 
     rawTopBrand.value = transformApiResponse(topBrandData);

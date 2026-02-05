@@ -24,19 +24,26 @@
     </v-row>
 
     <v-row class="mt-2">
-      <v-col cols="12" md="4">
+      <v-col cols="12" md="6">
         <PieChartCard title="Corporate Distribution in Channel" :data="corporatePieData" :has-legend="true"
           :is-loading="isLoading" />
       </v-col>
-      <v-col cols="12" md="4">
+      <v-col cols="12" md="6">
         <PieChartCard title="Brand Distribution in Channel" :data="brandPieData" :has-legend="true"
           :is-loading="isLoading" />
       </v-col>
-      <v-col cols="12" md="4">
+      
+    </v-row>
+    <v-row ckass="mt-2">
+      <v-col cols="12" md="6">
         <PieChartCard title="Brand Variant Distribution in Channel" :data="variantPieData" :has-legend="true"
           :is-loading="isLoading" />
       </v-col>
-    </v-row>
+      <v-col cols="12" md="6">
+        <TableCard title="Top Brand Ambassador" :headers="['Rank', 'Ambassador', 'Brand', 'Mention']"
+          :rows="topAmbassadorData" />
+      </v-col>
+      </v-row>  
 
     <v-row class="mt-2">
       <v-col cols="12" md="4">
@@ -51,14 +58,11 @@
     </v-row>
 
     <v-row class="mt-2 mb-6">
-      <v-col cols="12" md="6">
-        <TableCard title="Top Brand Ambassador" :headers="['Rank', 'Ambassador', 'Brand', 'Mention']"
-          :rows="topAmbassadorData" />
-      </v-col>
-      <v-col cols="12" md="6">
+      
+      <!-- <v-col cols="12" md="6">
         <TableCard title="Top Program" :headers="['Rank', 'Program', 'Type', 'Channel', 'Mention']"
           :rows="topProgramData" />
-      </v-col>
+      </v-col> -->
     </v-row>
 
   </div>

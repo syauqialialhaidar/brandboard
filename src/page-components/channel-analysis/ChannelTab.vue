@@ -6,6 +6,7 @@
           :labels="metricLabels" :index="index" />
       </v-col>
     </v-row>
+    
 
     <v-row class="mt-2">
       <v-col cols="12" md="4">
@@ -18,46 +19,53 @@
     </v-row>
 
     <v-row class="mt-2">
-      <v-col cols="12" md="6">
+      <v-col cols="12" md="12">
         <HeatmapCard title="Channel & Corporate" :data="channelCorporateData" :is-loading="isLoading" />
       </v-col>
-      <v-col cols="12" md="6">
+      <!-- <v-col cols="12" md="6">
         <BarChartCard title="Total Mention per Channel" :data="channelSimpleBarData" :segment-labels="['Mentions']"
           :is-loading="isLoading" />
-      </v-col>
+      </v-col> -->
     </v-row>
 
     <v-row class="mt-2">
-      <v-col cols="12" md="6">
+      <v-col cols="12">
         <BubbleChartCard title="Channel & Brand" :data="channelBrandBubbleData" :is-loading="isLoading" />
       </v-col>
 
-      <v-col cols="12" md="6">
-        <BarChartCard title="Total Brands per Channel" :data="channelTotalBrandBarData"
-          :segment-labels="['Total Brands']" :is-loading="isLoading" />
-      </v-col>
+      
     </v-row>
 
     <v-row class="mt-2">
+      <!-- <v-col cols="12" md="6">
+        <BarChartCard title="Total Brands per Channel" :data="channelTotalBrandBarData"
+          :segment-labels="['Total Brands']" :is-loading="isLoading" />
+      </v-col> -->
       <v-col cols="12" md="6">
         <TableCard title="Channel Ranking" :headers="['Rank', 'Channel', 'Total Program', 'Mention']"
           :rows="channelRankingData" />
       </v-col>
       <v-col cols="12" md="6">
-        <TableCard title="Top Program" :headers="['Rank', 'Program', 'Type', 'Channel', 'Mention']" :rows="[]" />
+        <TableCard title="Top Brand Ambassador" :headers="['Rank', 'Ambassador', 'Brand', 'Mention']"
+          :rows="topAmbassadorData" />
       </v-col>
+
+      <!-- <v-col cols="12" md="6">
+        <TableCard title="Top Program" :headers="['Rank', 'Program', 'Type', 'Channel', 'Mention']" :rows="[]" />
+      </v-col> -->
     </v-row>
 
     <v-row class="mt-2">
-      <v-col cols="12" md="6">
+      <!-- <v-col cols="12" md="6">
         <PieChartCard title="Program Type" :data="adsTypeData" :has-legend="true" :is-loading="isLoading" />
-      </v-col>
-      <v-col cols="12" md="6">
+      </v-col> -->
+      
+      <!-- <v-col cols="12" md="6">
         <PieChartCard title="Program Scope" :data="[]" :has-legend="true" :is-loading="isLoading" />
-      </v-col>
+      </v-col> -->
       
     </v-row>
-    <v-row class="mt-2 mb-6">
+    <!-- <v-row class="mt-2 mb-6">
       <v-col cols="12" md="6">
         <PieChartCard title="Audience Gender" :data="[]" :has-legend="true" :is-loading="isLoading" />
       </v-col>
@@ -65,13 +73,10 @@
         <PieChartCard title="Audience Age" :data="[]" :has-legend="true" :is-loading="isLoading" />
       </v-col>
 
-    </v-row>
+    </v-row> -->
 
     <v-row class="mt-2 mb-6">
-      <v-col cols="12">
-        <TableCard title="Top Brand Ambassador" :headers="['Rank', 'Ambassador', 'Brand', 'Mention']"
-          :rows="topAmbassadorData" />
-      </v-col>
+      
     </v-row>
   </div>
 </template>

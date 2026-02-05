@@ -160,6 +160,35 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
+// Tambahkan import API jika belum ada
+import { fetchData } from '@/utils/apiBuilder';
+
+const isLoadingDetail = ref(false);
+
+const viewDetail = async (item: TableRow) => {
+  selectedItem.value = item;
+  isModalOpen.value = true;
+  isLoadingDetail.value = true;
+
+  try {
+    // Tentukan kunci filter berdasarkan judul tabel
+    // Jika tabel 'Top Groups', maka filter pakai 'group', dst.
+    const filterKey = props.title.toLowerCase().includes('group') ? 'group' : 
+                      props.title.toLowerCase().includes('brand') ? 'brand' : 'varian';
+
+    // Ambil 1 contoh video terbaru untuk brand/group tersebut
+    const response = await fetchData('list', { [filterKey]: [item.name] });
+    
+    if (response && response.data && response.data.length > 0) {
+      // GABUNGKAN data agregat (name/mention) dengan data detail iklan (video_link/channel)
+      selectedItem.value = { ...item, ...response.data[0] };
+    }
+  } catch (error) {
+    console.error("Gagal memuat detail:", error);
+  } finally {
+    isLoadingDetail.value = false;
+  }
+};
 
 interface TableRow {
   rank?: number
@@ -187,10 +216,7 @@ const selectedItem = ref<TableRow | null>(null)
 const perPage = computed(() => props.perPage ?? 5)
 
 // --- Logic Modal ---
-const viewDetail = (item: TableRow) => {
-  selectedItem.value = item
-  isModalOpen.value = true
-}
+
 
 const getGroupIcon = (title: string) => {
   switch (title) {
@@ -202,53 +228,41 @@ const getGroupIcon = (title: string) => {
   }
 };
 
-// Logika pemetaan data tabel ke format Modal Premium
 const groupedDetails = computed(() => {
   if (!selectedItem.value) return [];
-
   const item = selectedItem.value;
 
+  // Definisikan variabel details di sini agar bisa digunakan di return bawah
+  const details = [
+    // Media & Program
+    { label: 'Channel', value: item.channel || '-', icon: 'mdi-television', iconColor: 'blue' },
+    { label: 'Ads Type', value: item.ads_type || 'TVC', icon: 'mdi-bullhorn', iconColor: 'orange' },
+    { label: 'Program', value: item.program || '-', icon: 'mdi-television-guide', iconColor: 'purple' },
+    
+    // Product Identity
+    { label: 'Brand', value: item.brand?.[0] || item.name || '-', icon: 'mdi-watermark', iconColor: 'deep-orange' },
+    { label: 'Group', value: item.group?.[0] || '-', icon: 'mdi-domain', iconColor: 'teal' },
+    { label: 'Category', value: item.category || '-', icon: 'mdi-shape', iconColor: 'purple' },
+    { label: 'Sub Category', value: item.sub_category || '-', icon: 'mdi-format-list-bulleted', iconColor: 'indigo' },
+    { label: 'Variant', value: item.varian?.[0] || '-', icon: 'mdi-tag-multiple', iconColor: 'pink' },
+    { label: 'Mention', value: item.mention || '0', icon: 'mdi-chart-bar', iconColor: 'blue' },
+    
+    // Metrics & Audience (Bisa dummy atau dari item jika ada)
+    { label: 'Rate Card', value: 'Estimation', icon: 'mdi-cash-multiple', iconColor: 'green' },
+    { label: 'Scope', value: 'National', icon: 'mdi-access-point-network', iconColor: 'cyan' },
+    { label: 'Timezone', value: 'WIB', icon: 'mdi-clock-time-four-outline', iconColor: 'amber' },
+    
+    // Audience Data
+    { label: 'Gender Dist.', type: 'pie', genderData: { female: 65, male: 35 }, icon: 'mdi-gender-male-female', iconColor: 'pink' },
+    { label: 'Age Group', type: 'bar', ageData: [{label:'18-24', val:30}, {label:'25+', val:70}], icon: 'mdi-account-group', iconColor: 'brown' },
+    { label: 'Location', value: 'Java & Bali', icon: 'mdi-map-marker-radius', iconColor: 'red' }
+  ];
+
   return [
-    {
-      title: 'Media & Program',
-      items: [
-        { label: 'Channel', value: item.channel || '-', icon: 'mdi-television', iconColor: 'blue' },
-        { label: 'Program Name', value: item.program || 'Prime Time News', icon: 'mdi-television-guide', iconColor: 'deep-purple' },
-        { label: 'Ads Type', value: item.ads_type || 'TVC', icon: 'mdi-bullhorn', iconColor: 'orange' },
-      ]
-    },
-    {
-      title: 'Product Identity',
-      items: [
-        { label: 'Brand', value: item.brand || '-', icon: 'mdi-watermark', iconColor: 'deep-orange' },
-        { label: 'Category', value: item.category || '-', icon: 'mdi-shape', iconColor: 'purple' },
-        { label: 'Sub Category', value: item.sub_category || '-', icon: 'mdi-format-list-bulleted', iconColor: 'indigo' },
-      ]
-    },
-    {
-      title: 'Audience',
-      items: [
-        {
-          label: 'Gender Distribution',
-          type: 'pie',
-          genderData: { female: 65, male: 35 }, // Bisa diganti data dinamis jika ada di row
-          icon: 'mdi-gender-male-female',
-          iconColor: 'pink accent-3'
-        },
-        {
-          label: 'Age Group',
-          type: 'bar',
-          ageData: [
-            { label: '18-24', val: 40 },
-            { label: '25-34', val: 85 },
-            { label: '35-44', val: 60 },
-            { label: '45+', val: 30 }
-          ],
-          icon: 'mdi-account-group',
-          iconColor: 'brown'
-        }
-      ]
-    }
+    { title: 'Media & Program', items: details.slice(0, 3) },
+    { title: 'Product Identity', items: details.slice(3, 9) },
+    { title: 'Metrics', items: details.slice(9, 12) },
+    { title: 'Audience', items: details.slice(12, 15) }
   ];
 });
 

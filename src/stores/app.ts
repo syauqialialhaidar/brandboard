@@ -20,7 +20,7 @@ export const useAppStore = defineStore('app', () => {
     { title: 'General Analysis', icon: 'mdi mdi-chart-arc', to: '/general-analysis' },
     { title: 'Internal Analysis', icon: 'mdi mdi-office-building', to: '/internal-analysis' },
     { title: 'External Analysis', icon: 'mdi mdi-web', to: '/external-analysis' },
-    { title: 'Industry Analysis', icon: 'mdi mdi-warehouse', to: '/industry-analysis' },
+    // { title: 'Industry Analysis', icon: 'mdi mdi-warehouse', to: '/industry-analysis' },
     { title: 'Channel Analysis', icon: 'mdi-access-point', to: '/channel-analysis' },
   ])
 
