@@ -166,6 +166,9 @@ interface TableRow {
   mention?: string | number
   isInternal?: boolean
   [key: string]: any
+  gender_female?: number
+  gender_male?: number
+  age_distribution?: { label: string; val: number }[]
 }
 
 const props = defineProps<{

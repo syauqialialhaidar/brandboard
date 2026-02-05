@@ -115,7 +115,7 @@
         </v-col>
       </v-row>
 
-      <div class="d-flex align-center mb-4 ga-2">
+      <!-- <div class="d-flex align-center mb-4 ga-2">
         <div class="text-h5 font-weight-bold">Media and Audience</div>
       </div>
 
@@ -236,7 +236,7 @@
         </v-col>
 
         
-      </v-row>
+      </v-row> -->
 
     </div>
   </v-container>

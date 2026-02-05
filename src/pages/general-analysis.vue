@@ -1,7 +1,11 @@
 <template>
   <v-container fluid class="pa-0">
 
-    <PageTitle title="General Analysis" />
+    <PageTitle 
+  title="General Analysis" 
+  :enabled-filters="['channel', 'group', 'brand', 'variants', 'kategori', 'sub_kategori']"
+  @update:filter="handleFilterUpdate" 
+/>
 
     <v-row class="mb-6 d-flex flex-nowrap"> <v-col v-for="(card, i) in metricCards" :key="card.title"
         class="flex-grow-1 flex-shrink-0" style="min-width: 0; width: 20%;">
@@ -127,7 +131,7 @@
     </div>
 
     <v-row class="mb-2">
-      <v-col cols="12" md="6">
+      <!-- <v-col cols="12" md="6">
         <v-card class="h-100 rounded-xl d-flex flex-column" variant="flat">
           <div class="pa-4 d-flex align-center justify-space-between">
             <div class="text-subtitle-1 font-weight-bold">Gender</div>
@@ -145,9 +149,9 @@
               :segment-labels="genderPieData.map(d => d.label)" suffix="%" :is-loading="isLoading" />
           </div>
         </v-card>
-      </v-col>
+      </v-col> -->
 
-      <v-col cols="12" md="6">
+      <!-- <v-col cols="12" md="6">
         <v-card class="h-100 rounded-xl d-flex flex-column" variant="flat">
           <div class="pa-4 d-flex align-center justify-space-between">
             <div class="text-subtitle-1 font-weight-bold">Age</div>
@@ -166,11 +170,11 @@
               :has-legend="true" suffix="%" :is-loading="isLoading" />
           </div>
         </v-card>
-      </v-col>
+      </v-col> -->
     </v-row>
 
     <v-row class="mb-2">
-      <v-col cols="12" md="6">
+      <!-- <v-col cols="12" md="6">
         <v-card class="h-100 rounded-xl d-flex flex-column" variant="flat">
           <div class="pa-4 d-flex align-center justify-space-between">
             <div class="text-subtitle-1 font-weight-bold">Location</div>
@@ -188,15 +192,12 @@
               :segment-labels="locationPieData.map(d => d.label)" :is-loading="isLoading" />
           </div>
         </v-card>
-      </v-col>
-      <v-col cols="12" md="6">
+      </v-col> -->
+      <v-col cols="12" md="4">
         <TableMinim title="Top Brand Ambassador" :headers="['Name']" :rows="topAmbassadorsList" :per-page="5"
           class="h-100 rounded-xl" />
       </v-col>
-    </v-row>
-
-    <v-row class="mb-2">
-      <v-col cols="12" md="6">
+      <v-col cols="12" md="4">
         <v-card class="h-100 rounded-xl d-flex flex-column" variant="flat">
           <div class="pa-4 d-flex align-center justify-space-between">
             <div class="text-subtitle-1 font-weight-bold">Zona Waktu</div>
@@ -215,8 +216,7 @@
           </div>
         </v-card>
       </v-col>
-
-      <v-col cols="12" md="6">
+      <v-col cols="12" md="4">
         <v-card class="h-100 rounded-xl d-flex flex-column" variant="flat">
           <div class="pa-4 d-flex align-center justify-space-between">
             <div class="text-subtitle-1 font-weight-bold">Scope</div>
@@ -236,6 +236,12 @@
           </div>
         </v-card>
       </v-col>
+    </v-row>
+
+    <v-row class="mb-2">
+      
+
+      
 
 
     </v-row>
@@ -409,6 +415,23 @@ const rawInternalVariants = ref<any[]>([]);
 
 const rawTimezoneData = ref<any[]>([]);
 const rawScopeData = ref<any[]>([]);
+
+//===filter
+const selectedGroups = ref([]);
+const selectedBrands = ref([]);
+const selectedVariants = ref([]);
+const selectedCategory = ref([]);
+const selectedSubCategory = ref([]);
+const handleFilterUpdate = async (newFilters) => {
+  if (newFilters.group !== undefined) selectedGroups.value = newFilters.group;
+  if (newFilters.brand !== undefined) selectedBrands.value = newFilters.brand;
+  if (newFilters.variants !== undefined) selectedVariants.value = newFilters.variants;
+  if (newFilters.kategori !== undefined) selectedCategory.value = newFilters.kategori;
+  if (newFilters.sub_kategori !== undefined) selectedSubCategory.value = newFilters.sub_kategori;
+
+  await fetchGlobalData(); // Panggil ulang API dengan filter baru
+};
+
 
 
 // ==========================================================Carousel
@@ -606,12 +629,6 @@ onMounted(async () => {
   }
 });
 
-// Update handle filter
-const handleFilterUpdate = (payload: any) => {
-  activeFilters.value = payload;
-  console.log('General Page Filter Updated:', payload);
-  // Di sini kamu bisa memanggil ulang fetchGlobalData() jika ingin grafik berubah saat difilter
-};
 
 const masterCorporateGroups = computed(() => {
   if (!rawTableTopGroups.value || rawTableTopGroups.value.length === 0) return [];
@@ -923,17 +940,27 @@ function handleFilterChange(payload: any) {
 
 // 6. API Fetching
 async function fetchGlobalData() {
+  // 1. Membangun Objek Filter Dinamis
+  const dynamicFilter = {};
+  if (selectedGroups.value.length > 0) dynamicFilter.group = selectedGroups.value;
+  if (selectedBrands.value.length > 0) dynamicFilter.brand = selectedBrands.value;
+  if (selectedVariants.value.length > 0) dynamicFilter.varian = selectedVariants.value;
+  if (selectedCategory.value.length > 0) dynamicFilter.category = selectedCategory.value;
+  if (selectedSubCategory.value.length > 0) dynamicFilter.sub_category = selectedSubCategory.value;
+
+  // Filter khusus untuk data internal (Highlight Company)
   const internalFilter = { group: [internalGroup.value] };
+
   isLoading.value = true;
 
   try {
-
+    // 2. Eksekusi Parallel Fetch dengan Filter Terpasang
     const [
       totalAds,
       totalGroups,
       totalBrands,
       totalVariants,
-      totalAdsWithGroup,
+      totalAdsInternal,
       topGroupsRes,
       chartTrendGroupData,
       chartStackedGroupBrandData,
@@ -948,50 +975,41 @@ async function fetchGlobalData() {
       timezoneRes,
       scopeRes
     ] = await Promise.all([
-      fetchData('total/ads'),
-      fetchData('total/group'),
-      fetchData('total/brand'),
-      fetchData('total/varian'),
-      fetchData('total/ads', internalFilter),
-      fetchData('top/group'),
-      fetchData('trend/group'),
-      fetchData('stacked/group/brand'),
-      fetchData('top/brand'),
+      fetchData('total/ads', dynamicFilter),
+      fetchData('total/group', dynamicFilter),
+      fetchData('total/brand', dynamicFilter),
+      fetchData('total/varian', dynamicFilter),
+      fetchData('total/ads', internalFilter), // Tetap internal untuk highlight
+      fetchData('top/group', dynamicFilter),
+      fetchData('trend/group', dynamicFilter),
+      fetchData('stacked/group/brand', dynamicFilter),
+      fetchData('top/brand', dynamicFilter),
       fetchData('top/brand', internalFilter),
       fetchData('top/varian', internalFilter),
-      fetchData('total/rate'),
-      fetchData('top/varian'),
-      fetchData('top/program'),
-      fetchData('top/brand_ambassador'),
-      fetchData('top/program_type'),
-      fetchData('top/periode'),
-      fetchData('top/scope')
+      fetchData('total/rate', dynamicFilter),
+      fetchData('top/varian', dynamicFilter),
+      fetchData('top/program', dynamicFilter),
+      fetchData('top/brand_ambassador', dynamicFilter),
+      fetchData('top/program_type', dynamicFilter),
+      fetchData('top/periode', dynamicFilter),
+      fetchData('top/scope', dynamicFilter)
     ]);
 
-    // 2. ASSIGN DATA DASAR (Rate Card & Internal Check)
+    // 3. Assign Data Dasar & Rate Card
     totalRateCard.value = rateCardRes?.total || 0;
-
     rawInternalBrands.value = internalBrandsRes || [];
     rawInternalVariants.value = internalVariantsRes || [];
-    if (internalBrandsRes && Array.isArray(internalBrandsRes)) {
-      rawInternalBrands.value = internalBrandsRes;
-    }
 
-    // 3. LOGIKA TREND CHART & METRIC CARDS
-    let chartLabels: string[] = [];
-    let filledTrendData: number[] = [];
-
-    // Generate tanggal lengkap (Start - End)
+    // 4. Proses Logika Trend & Metric Cards
     const dateRangeObj = generateDateRange(startDate.value, endDate.value);
-    chartLabels = dateRangeObj.labels;
+    const chartLabels = dateRangeObj.labels;
+    let filledTrendData = [];
 
-    // Mapping data trend ke tanggal lengkap
     if (chartTrendGroupData && Array.isArray(chartTrendGroupData)) {
-      const dailyMap: Record<string, number> = {};
-      chartTrendGroupData.forEach((item: any) => {
+      const dailyMap = {};
+      chartTrendGroupData.forEach((item) => {
         const d = item.date;
-        if (!dailyMap[d]) dailyMap[d] = 0;
-        dailyMap[d] += (Number(item.total) || 0);
+        dailyMap[d] = (dailyMap[d] || 0) + (Number(item.total) || 0);
       });
       filledTrendData = dateRangeObj.apiDates.map(dateStr => dailyMap[dateStr] || 0);
     } else {
@@ -1000,16 +1018,11 @@ async function fetchGlobalData() {
 
     adsTrendData.value = filledTrendData;
 
-    // (Dummy trend logic untuk metric lain, sesuaikan jika ada API real)
-    groupsTrendData.value = filledTrendData.map(v => Math.round(v * 0.4));
-    brandsTrendData.value = [...filledTrendData].reverse();
-    variantsTrendData.value = filledTrendData.map(v => Math.floor(v * 0.8));
-
     // Update Metric Cards Array
     metricCards.value = [
       {
         title: 'Total Ads Detection',
-        value: totalAds?.total || 0, // Kembali ke Total Ads
+        value: totalAds?.total || 0,
         icon: 'mdi-chart-line',
         trendData: adsTrendData.value,
         labels: chartLabels
@@ -1018,88 +1031,52 @@ async function fetchGlobalData() {
         title: 'Total Corporates',
         value: totalGroups?.total || 0,
         icon: 'mdi-domain',
-        trendData: groupsTrendData.value,
+        trendData: filledTrendData.map(v => Math.round(v * 0.4)), // Dummy trend ratio
         labels: chartLabels
       },
       {
         title: 'Total Brands',
         value: totalBrands?.total || 0,
         icon: 'mdi-tag',
-        trendData: brandsTrendData.value,
+        trendData: [...filledTrendData].reverse(),
         labels: chartLabels
       },
       {
         title: 'Total Brand Variants',
         value: totalVariants?.total || 0,
         icon: 'mdi-tag-multiple',
-        trendData: variantsTrendData.value,
+        trendData: filledTrendData.map(v => Math.floor(v * 0.8)),
         labels: chartLabels
       },
       {
         title: 'Total Spending',
-        value: '...',
+        value: formattedRateCard.value,
         icon: 'mdi-cash-multiple',
-        trendData: variantsTrendData.value,
+        trendData: filledTrendData,
         labels: chartLabels
-      },
+      }
     ];
 
-    multiCardData.value = [
-      { title: 'Total Ads Frequency', value: totalAds?.total || 0, icon: 'mdi mdi-chart-line-variant', trendData: adsTrendData.value, labels: chartLabels },
-      { title: 'Total Spending', value: totalGroups?.total || 0, icon: 'mdi mdi-currency-usd', trendData: groupsTrendData.value, labels: chartLabels },
-      { title: 'Total Audience Reach', value: totalBrands?.total || 0, icon: 'mdi mdi-account-group-outline', trendData: brandsTrendData.value, labels: chartLabels },
-      { title: 'Total Programs', value: totalVariants?.total || 0, icon: 'mdi mdi-television-play', trendData: variantsTrendData.value, labels: chartLabels },
-      { title: 'Total Channels', value: totalVariants?.total || 0, icon: 'mdi-access-point', trendData: variantsTrendData.value, labels: chartLabels },
-    ];
-
-    // 4. LOGIKA CAROUSEL (HIGHLIGHTS)
-    corporateTotal.value = totalAdsWithGroup?.total || 0;
+    // 5. Update Carousel Highlights
+    corporateTotal.value = totalAdsInternal?.total || 0;
     totalAdsAllCorporate.value = totalAds?.total || 0;
 
     if (topBrandsRes && Array.isArray(topBrandsRes)) {
       rawAllBrands.value = topBrandsRes;
       allBrandHighlights.value = [];
       currentPageInternal.value = 0;
-      // Load batch pertama carousel
-      await fetchMoreBrands(0, 5);
+      await fetchMoreBrands(0, 5); // Load batch pertama
     }
 
-    // 5. LOGIKA TOP 5 COMPETITOR (Dengan Preview Video)
-    if (topGroupsRes && Array.isArray(topGroupsRes)) {
-      const top5Groups = [...topGroupsRes]
-        .sort((a: any, b: any) => (b.total || 0) - (a.total || 0))
-        .slice(0, 5);
-
-      corporateHighlights.value = await Promise.all(
-        top5Groups.map(async (group: any) => {
-          let previewVideo = '';
-          try {
-            const videoRes = await fetchData('list', { group: [group.name] });
-            if (videoRes?.data?.length > 0) {
-              previewVideo = videoRes.data[0].video_link;
-            }
-          } catch (e) { console.error(e); }
-          return {
-            name: group.name,
-            count: group.total || 0,
-            preview_video: previewVideo,
-            logo: '',
-          };
-        })
-      );
-    }
-
-    // 6. LOGIKA CHARTS
+    // 6. Update Chart & Table States
     rawChartTopGroups.value = transformApiResponse(topGroupsRes);
     rawChartTrendGroup.value = chartTrendGroupData || [];
     rawChartStackedGroupBrand.value = chartStackedGroupBrandData || [];
 
-    // 7. LOGIKA TABEL (Menggunakan Helper transformApiResponse)
     rawTableTopGroups.value = transformApiResponse(topGroupsRes);
     rawTableTopBrands.value = transformApiResponse(topBrandsRes);
     rawTableTopVariants.value = transformApiResponse(topVariantsRes);
 
-    // --> Tabel Baru: Program & Ambassador
     rawTopPrograms.value = transformApiResponse(topProgramData);
     rawTopAmbassadors.value = transformApiResponse(topAmbassadorData);
     rawProgramType.value = transformApiResponse(topProgramTypeData);
