@@ -30,14 +30,13 @@ const props = defineProps<{
 
 // State Reaktif
 const isLoading = ref(true);
-const stats = ref({ totalAds: 0, totalBrands: 0, totalVariants: 0 });
+const stats = ref({ totalAds: 0, totalBrands: 0, totalVariants: 0, totalCategory: 0 });
 const trendData = ref<number[]>([]);
 const trendLabels = ref<string[]>([]);
 
 async function fetchMetricData() {
   isLoading.value = true;
   try {
-    // Susun filter API agar tidak mengirim array kosong
     const apiFilter = {
       group: props.filters.group,
       ...(props.filters.brand?.length > 0 && { brand: props.filters.brand }),
@@ -46,19 +45,22 @@ async function fetchMetricData() {
       ...(props.filters.varian?.length > 0 && { varian: props.filters.varian }),
     };
 
-    // Parallel Fetching untuk kecepatan maksimal
-    const [ads, brands, variants, trend] = await Promise.all([
+    // PERBAIKAN: Tambahkan 'categories' ke dalam array destructuring
+    // Pastikan urutannya sama dengan array di fetchData
+    const [ads, brands, variants, trend, categories] = await Promise.all([
       fetchData('total/ads', apiFilter),
       fetchData('total/brand', apiFilter),
       fetchData('total/varian', apiFilter),
       fetchData('trend/brand', apiFilter),
+      fetchData('total/category', apiFilter) // Ini yang ke-5
     ]);
 
     // Update nilai statistik
     stats.value = {
       totalAds: ads?.total || 0,
       totalBrands: brands?.total || 0,
-      totalVariants: variants?.total || 0
+      totalVariants: variants?.total || 0,
+      totalCategory: categories?.total || 0 // Sekarang aman digunakan
     };
 
     // Olah data tren untuk grafik v-sparkline
@@ -121,6 +123,13 @@ const processedCards = computed(() => [
     trendData: trendData.value.map(v => Math.round(v / 2)),
     labels: trendLabels.value
   },
+  {
+    title: 'Total Categories',
+    value: isLoading.value ? '...' : stats.value.totalCategory, 
+    icon: 'mdi-shape',
+    trendData: trendData.value.map(v => Math.max(1, Math.round(v / 8))), 
+    labels: trendLabels.value
+  }
   // {
   //   title: 'Total Spending',
   //   value: '...', // Update bagian ini jika ada API spending

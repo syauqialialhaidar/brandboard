@@ -509,6 +509,7 @@ const externalMetricCards = ref<MetricCardItem[]>([
   { title: 'Total Group Ads', value: '...', icon: 'mdi-chart-pie', trendData: [], labels: [] },
   { title: 'Total of Brands', value: '...', icon: 'mdi-tag', trendData: [], labels: [] },
   { title: 'Total of Variants', value: '...', icon: 'mdi-tag-multiple', trendData: [], labels: [] },
+  { title: 'Total Category', value: '...', icon: 'mdi-shape-outline', trendData: [], labels: [] },
   // { title: 'Total Spanding', value: '...', icon: 'mdi-cash-multiple', trendData: [], labels: [] },
 ]);
 
@@ -692,13 +693,14 @@ async function fetchAllData() {
 
   try {
     const [
-      totalAds, totalBrands, totalVariants,
+      totalAds, totalBrands, totalVariants, totalCategory,
       topBrandData, trendBrandData, stackedBrandVarianData,
       topVarianRaw, trendVarianData
     ] = await Promise.all([
       fetchData('total/ads', dynamicFilter),
       fetchData('total/brand', dynamicFilter),
       fetchData('total/varian', dynamicFilter),
+      fetchData('total/category', dynamicFilter),
       fetchData('top/brand', dynamicFilter),
       fetchData('trend/brand', dynamicFilter),
       fetchData('stacked/brand/varian', dynamicFilter),
@@ -720,7 +722,13 @@ async function fetchAllData() {
       { title: 'Total Group Ads', value: totalAds?.total || 0, icon: 'mdi-chart-pie', trendData: processedTrend, labels: processedLabels },
       { title: 'Total of Brands', value: totalBrands?.total || 0, icon: 'mdi-tag', trendData: [...processedTrend].reverse(), labels: processedLabels },
       { title: 'Total of Variants', value: totalVariants?.total || 0, icon: 'mdi-tag-multiple', trendData: processedTrend.map(v => Math.floor(v * 0.8)), labels: processedLabels },
-      // { title: 'Total Spanding', value: '...', icon: 'mdi-cash-multiple', trendData: processedTrend.map(v => v * 100), labels: processedLabels },
+      { 
+        title: 'Total Categories', 
+        value: totalCategory?.total || 0, 
+        icon: 'mdi-shape', 
+        trendData: processedTrend.map(v => Math.ceil(v / 10)), 
+        labels: processedLabels 
+      },
     ];
 
     rawTopBrand.value = transformApiResponse(topBrandData);

@@ -9,14 +9,48 @@
     
 
     <v-row class="mt-2">
-      <v-col cols="12" md="4">
-        <PieChartCard title="Channel Distribution" :data="channelPieData" :has-legend="true" :is-loading="isLoading" />
-      </v-col>
-      <v-col cols="12" md="8">
-        <LineChartCard title="Channel Trends" :labels="channelTrendLabels" :data="channelTrendData"
-          :is-loading="isLoading" />
-      </v-col>
-    </v-row>
+  <v-col cols="12" md="4">
+    <v-card class="h-100 rounded-xl d-flex flex-column" variant="flat">
+      <div class="pa-4 d-flex align-center justify-space-between">
+        <div class="text-subtitle-1 font-weight-bold">Channel Distribution</div>
+        <v-btn-toggle v-model="channelDistType" density="compact" mandatory color="primary" variant="tonal" class="rounded-lg">
+          <v-btn value="pie" icon size="x-large"><v-icon size="small">mdi-chart-pie</v-icon></v-btn>
+          <v-btn value="bar" icon size="x-large"><v-icon size="small">mdi-chart-bar</v-icon></v-btn>
+        </v-btn-toggle>
+      </div>
+      <v-divider />
+      <div class="pa-4 flex-grow-1">
+        <PieChartCard 
+          v-if="channelDistType === 'pie'" 
+          title="" 
+          :data="channelPieData" 
+          :has-legend="true" 
+          :is-loading="isLoading" 
+        />
+        
+        <BarChartCard 
+          v-else 
+          title="" 
+          :data="[{ label: 'Mentions', values: channelPieData.map(d => d.value) }]" 
+          :segment-labels="channelPieData.map(d => d.label)"
+          :is-loading="isLoading" 
+        />
+      </div>
+    </v-card>
+  </v-col>
+
+  <v-col cols="12" md="8">
+    <v-card class="h-100 rounded-xl d-flex flex-column" variant="flat">
+      <div class="pa-4">
+        <div class="text-subtitle-1 font-weight-bold">Channel Trends</div>
+      </div>
+      <v-divider />
+      <div class="pa-4 flex-grow-1">
+        <LineChartCard title="" :labels="channelTrendLabels" :data="channelTrendData" :is-loading="isLoading" />
+      </div>
+    </v-card>
+  </v-col>
+</v-row>
 
     <v-row class="mt-2">
       <v-col cols="12" md="12">
@@ -42,11 +76,11 @@
           :segment-labels="['Total Brands']" :is-loading="isLoading" />
       </v-col> -->
       <v-col cols="12" md="6">
-        <TableCard title="Channel Ranking" :headers="['Rank', 'Channel', 'Total Program', 'Mention']"
+        <TableMinim title="Channel Ranking" :headers="['Rank', 'Channel', 'Mention']"
           :rows="channelRankingData" />
       </v-col>
       <v-col cols="12" md="6">
-        <TableCard title="Top Brand Ambassador" :headers="['Rank', 'Ambassador', 'Brand', 'Mention']"
+        <TableMinim title="Top Brand Ambassador" :headers="['Rank', 'Name', 'Mention']"
           :rows="topAmbassadorData" />
       </v-col>
 
@@ -95,6 +129,7 @@ import LineChartCard from '@/page-components/LineChartCard.vue';
 import BarChartCard from '@/page-components/BarChartCard.vue';
 import HeatmapCard from '../HeatmapCard.vue';
 import BubbleChartCard from '../BubbleChartCard.vue';
+import TableMinim from '@/page-components/TableMinim.vue';
 
 // Utils & Stores
 import { generateBrightColors } from '@/utils/colors';
@@ -143,6 +178,8 @@ const rawStackedChannelGroup = ref<StackedItem[]>([]);
 const rawStackedChannelBrand = ref<StackedItem[]>([]);
 const rawAdsType = ref<TableRow[]>([]);
 const rawTopAmbassador = ref<AmbassadorRow[]>([]);
+
+const channelDistType = ref('pie');
 
 // Transformers
 const transformSimpleTop = (data: any[]) => (Array.isArray(data) ? data.map(i => ({ name: i.name, mention: i.total || 0 })) : []);
