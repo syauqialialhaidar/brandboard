@@ -48,16 +48,7 @@
 
       <v-divider class="my-4"></v-divider>
       
-      <div class="d-flex justify-center gap-6 mt-4">
-        <div class="stat-tag">
-          <span class="tag-label">Total Brand</span>
-          <span class="tag-val">{{ totalBrands }}</span>
-        </div>
-        <div class="stat-tag dark-blue">
-          <span class="tag-label">Mentions</span>
-          <span class="tag-val">{{ totalMentions.toLocaleString() }}</span>
-        </div>
-      </div>
+      
     </v-card-text>
   </v-card>
 </template>

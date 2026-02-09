@@ -1,96 +1,116 @@
 <template>
-  <v-card class="pa-0 pb-4 premium-heatmap-card overflow-hidden d-flex flex-column" elevation="0" color="surface"
-    style="height: 100%;">
-
-    <div class="d-flex flex-wrap align-center pa-4 ga-4">
-      <v-card-title class="text-subtitle-1 font-weight-bold pa-0">{{ title }}</v-card-title>
-      <v-spacer></v-spacer>
-      <slot name="append-header"></slot>
+  <v-card class="pa-0 premium-heatmap-card overflow-hidden d-flex flex-column" elevation="0" color="surface">
+    
+    <div class="d-flex flex-wrap align-center pa-4">
+      <div class="flex-grow-1">
+        <v-card-title class="text-subtitle-1 font-weight-bold pa-0">
+          {{ title }}
+        </v-card-title>
+      </div>
+      
+      <v-text-field 
+        v-model="searchQuery" 
+        density="compact" 
+        label="Search" 
+        append-inner-icon="mdi-magnify" 
+        single-line
+        flat 
+        hide-details 
+        variant="outlined" 
+        class="search-input"
+      />
     </div>
 
-    <v-divider class="mb-4"></v-divider>
+    <v-divider></v-divider>
 
-    <v-card-text class="pa-4 d-flex flex-column flex-grow-1">
-      <div v-if="isLoading" class="d-flex justify-center align-center fill-height">
+    <v-card-text class="pa-0 d-flex flex-column overflow-hidden">
+      
+      <div v-if="isLoading" class="d-flex justify-center align-center py-10">
         <v-progress-circular indeterminate color="primary" size="40"></v-progress-circular>
       </div>
 
-      <div v-else class="content-container flex-grow-1 d-flex flex-column justify-center align-center">
-        <div class="staggered-grid" :class="{ 'has-selection': selectedIndex !== null }">
-          <div v-for="(row, rowIndex) in structuredRows" :key="rowIndex" 
-               class="grid-row" :class="{ 'row-offset': rowIndex % 2 !== 0 }">
-            
-            <div v-for="(item, colIndex) in row" :key="colIndex" class="grid-slot">
-              <div v-if="item" class="mini-block" 
-                :class="{ 'is-active': selectedIndex === (rowIndex * columns + colIndex) }"
+      <div v-else class="heatmap-wrapper custom-scroll pa-4">
+        <div class="heatmap-grid" :class="{ 'has-selection': selectedIndex !== null }">
+          <v-tooltip v-for="(item, index) in filteredData" :key="index" location="top" open-delay="50">
+            <template v-slot:activator="{ props }">
+              <div 
+                v-bind="props"
+                class="mini-block" 
+                :class="{ 'is-active': selectedIndex === index }"
                 :style="getBlockTheme(item.value)" 
-                @click="handleInteraction(item, (rowIndex * columns + colIndex))">
-                <div class="text-center px-1 w-100">
-                  <div class="mini-label">{{ item.groupName }}</div>
-                  <div class="mini-value">{{ formatNumber(item.value) }}</div>
+                @click="handleInteraction(item, index)"
+              >
+                <div class="block-content">
+                  <span class="mini-label">{{ item.groupName }}</span>
+                  <span class="mini-value">{{ formatNumber(item.value) }}</span>
                 </div>
               </div>
-              <div v-else class="mini-block placeholder"></div>
-            </div>
-
-          </div>
+            </template>
+            <span>{{ item.groupName }}: <strong>{{ item.value.toLocaleString() }}</strong></span>
+          </v-tooltip>
         </div>
-
-        <div class="d-flex justify-center gap-4 mt-4">
-          <div class="stat-tag" @click="selectedIndex = null">
-            <span class="tag-label">Total</span>
-            <span class="tag-val">{{ totalCorporate }}</span>
-          </div>
-          <div class="stat-tag dark-blue">
-            <span class="tag-label">Mentions</span>
-            <span class="tag-val">{{ totalMentions.toLocaleString() }}</span>
-          </div>
-        </div>
+      </div>
+      
+      <div class="d-flex justify-center ga-4 pa-4 footer-bg">
+        
       </div>
     </v-card-text>
   </v-card>
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue';
+import { computed, ref, watch } from 'vue';
 
 interface HeatmapDetail { groupName: string; value: number; }
 
 const props = defineProps<{
   title?: string;
-  data: Array<{ details: any[] }>;
+  data: Array<{ details: HeatmapDetail[] }>;
   isLoading: boolean;
 }>();
 
 const emit = defineEmits(['item-click']);
+const searchQuery = ref('');
 const selectedIndex = ref<number | null>(null);
-const allData = computed(() => props.data.flatMap(d => d.details));
 
-// --- KONFIGURASI LAYOUT ---
-const columns = 6; // Jumlah kolom per baris
-const blockWidth = 70;
-const blockHeight = 40;
+watch(searchQuery, () => { selectedIndex.value = null; });
 
-// Mengatur data ke dalam baris-baris (Array of Arrays)
-const structuredRows = computed(() => {
-  const data = [...allData.value].sort((a, b) => b.value - a.value);
-  const rows = [];
-  for (let i = 0; i < data.length; i += columns) {
-    rows.push(data.slice(i, i + columns));
-  }
-  return rows;
+const allData = computed(() => {
+  const rawDetails = props.data.flatMap(d => d.details || []);
+  const merged = rawDetails.reduce((acc, curr) => {
+    const name = curr.groupName;
+    const value = Number(curr.value) || 0;
+    acc[name] = (acc[name] || 0) + value;
+    return acc;
+  }, {} as Record<string, number>);
+
+  return Object.entries(merged).map(([name, val]) => ({
+    groupName: name,
+    value: val
+  }));
+});
+
+const formatNumber = (n: number) => {
+  if (n >= 1000) return (n / 1000).toFixed(1) + 'k';
+  return n.toLocaleString();
+};
+
+const filteredData = computed(() => {
+  return [...allData.value]
+    .filter(item => item.groupName.toLowerCase().includes(searchQuery.value.toLowerCase()))
+    .sort((a, b) => b.value - a.value);
 });
 
 const getBlockTheme = (val: number) => {
   const max = Math.max(...allData.value.map(i => i.value)) || 1;
   const ratio = val / max;
   const h = 210; 
-  const s = 30 + (ratio * 50);
-  const l = 92 - (ratio * 50);
+  const s = 45 + (ratio * 45);
+  const l = 85 - (ratio * 40); 
 
   return {
     '--bg': `hsl(${h}, ${s}%, ${l}%)`,
-    '--color': l < 60 ? 'white' : '#475569',
+    '--color': l < 60 ? 'white' : '#1e293b',
   };
 };
 
@@ -99,136 +119,123 @@ const handleInteraction = (item: HeatmapDetail, index: number) => {
   emit('item-click', item);
 };
 
-const formatNumber = (n: number) => n >= 1000 ? (n / 1000).toFixed(1) + 'k' : n;
-const totalCorporate = computed(() => allData.value.length);
-const totalMentions = computed(() => allData.value.reduce((a, b) => a + b.value, 0));
+const totalMentions = computed(() => filteredData.value.reduce((a, b) => a + b.value, 0));
 </script>
 
 <style scoped>
-
-.d-flex.justify-center {
-  gap: 16px;
-}
+/* Container Card */
 .premium-heatmap-card {
-  border-radius: 20px !important;
-  border: 1px solid rgba(var(--v-border-color), 0.05) !important;
+  border-radius: 16px !important;
+  max-height: 600px; /* Batasi tinggi agar tidak meluber ke bawah */
 }
 
-/* Container utama Grid */
-.staggered-grid {
-  display: flex;
-  flex-direction: column;
-  gap: 8px; /* Jarak vertikal antar baris */
-  padding: 20px;
+.search-input {
+  max-width: 220px;
 }
 
-/* Baris Grid */
-.grid-row {
-  display: flex;
-  justify-content: center;
-  gap: 10px; /* Jarak horizontal antar kotak */
+/* Heatmap Wrapper: Mengontrol overflow agar tidak keluar kotak */
+.heatmap-wrapper {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  background-color: rgba(var(--v-theme-on-surface), 0.02);
 }
 
-/* Efek Offset untuk baris genap (indeks 1, 3, 5...) */
-.row-offset {
-  margin-left: 40px; /* Setengah dari lebar kotak + gap untuk efek zigzag */
+/* Menggunakan CSS Grid agar kotak otomatis pas di kontainer */
+.heatmap-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+  gap: 8px;
+  width: 100%;
 }
 
 .mini-block {
-  width: 70px;
-  height: 40px;
+  height: 44px;
   background: var(--bg);
   border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.2s ease;
   border: 1px solid rgba(0, 0, 0, 0.05);
-  position: relative;
 }
 
-.placeholder {
-  background: transparent;
-  border: none;
-  pointer-events: none;
-}
-
-.mini-block:hover:not(.is-active) {
-  transform: scale(1.1);
-  z-index: 5;
+.mini-block:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.1);
 }
 
 .mini-block.is-active {
-  transform: scale(1.8);
-  padding: 4px;
-  z-index: 100;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
-  border: 2px solid #1976D2;
+  box-shadow: 0 0 0 3px rgb(var(--v-theme-primary));
+  z-index: 2;
+}
+
+.block-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  padding: 0 4px;
+  overflow: hidden;
 }
 
 .mini-label {
   font-size: 8px;
   font-weight: 700;
   color: var(--color);
-  max-width: 100%;
+  width: 100%;
+  text-align: center;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  line-height: 1;
+  text-transform: uppercase;
 }
 
-.mini-block.is-active .mini-label {
-  white-space: normal;     
-  overflow: visible;        
-  text-overflow: clip;      
-  font-size: 6px;          
-  word-break: break-word;  
-  display: -webkit-box;    
-  -webkit-box-orient: vertical;
-}
 .mini-value {
   font-size: 11px;
-  font-weight: 900;
+  font-weight: 800;
   color: var(--color);
-  white-space: normal;
 }
 
-
-/* Blur effect saat ada yang dipilih */
-.staggered-grid.has-selection .mini-block:not(.is-active) {
-  filter: blur(2px) opacity(0.3);
-  transform: scale(0.9);
+/* Stat Tags Footer */
+.footer-bg {
+  background-color: rgb(var(--v-theme-surface));
 }
 
-/* Stats Styling */
 .stat-tag {
-  background: rgba(var(--v-theme-on-surface), 0.05);
-  color: rgba(var(--v-theme-on-surface), 0.87);
-  padding: 10px 24px;
-  border-radius: 100px;
+  background: rgba(var(--v-theme-on-surface), 0.03);
+  padding: 8px 24px;
+  border-radius: 12px;
+  border: 1px solid rgba(var(--v-border-color), 0.1);
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 10px;
-  transition: all 0.2s ease;
-  border: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
+  min-width: 140px;
 }
 
-.stat-tag.dark-blue {
-  background: #1976D2; /* Biru Vuetify */
-  color: white;
-  border: none;
-  box-shadow: 0 6px 18px rgba(25, 118, 210, 0.3);
-}
 .tag-label {
-  font-size: 11px;
-  text-transform: uppercase;
+  font-size: 10px;
   font-weight: 700;
-  opacity: 0.8;
+  color: rgba(var(--v-theme-on-surface), 0.6);
+  text-transform: uppercase;
 }
 
 .tag-val {
   font-size: 20px;
   font-weight: 900;
+}
+
+/* Selection Effect */
+.heatmap-grid.has-selection .mini-block:not(.is-active) {
+  opacity: 0.2;
+  filter: grayscale(1);
+}
+
+/* Scrollbar Custom */
+.custom-scroll::-webkit-scrollbar { width: 6px; }
+.custom-scroll::-webkit-scrollbar-thumb {
+  background: rgba(var(--v-theme-primary), 0.2);
+  border-radius: 10px;
 }
 </style>

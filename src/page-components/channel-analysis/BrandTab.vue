@@ -2,11 +2,6 @@
   <div>
     <div class="d-flex flex-wrap my-6 ga-4">
       <div class="text-h6 font-weight-bold">Filter Analysis by</div>
-      <v-spacer></v-spacer>
-      <v-sheet width="300" color="transparent">
-        <v-select v-model="selectedLocalChannel" density="compact" label="Select Channel" variant="outlined"
-          hide-details :items="masterChannels"></v-select>
-      </v-sheet>
     </div>
     <v-row>
       <v-col v-for="(card, index) in metricCards" :key="card.title" cols="12" sm="6" md="3">

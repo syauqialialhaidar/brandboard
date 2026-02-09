@@ -9,7 +9,7 @@
         flat hide-details variant="outlined" style="max-width: 220px;" />
     </div>
 
-    <div class="scroller-table scroller-x">
+    <div class="scroller-table scroller-x flex-grow-1">
       <table class="table-custom">
         <thead>
           <tr>
@@ -34,7 +34,7 @@
             </td>
 
             <td class="col-mention text-center">
-              <span v-html="highlightText(row.mention)"></span>
+              <span v-html="highlightText(formatCompact(row.mention))"></span>
             </td>
 
             <td class="col-action text-center">
@@ -104,11 +104,13 @@
                             </label>
                           </div>
 
-                          <div v-if="tile.type === 'pie'" class="d-flex align-center justify-space-around py-2">
+                          <div v-if="tile.type === 'pie' && tile.genderData"
+                            class="d-flex align-center justify-space-around py-2">
                             <v-progress-circular :model-value="tile.genderData.female" :size="80" :width="12"
-                              color="pink" background-color="blue">
+                              color="pink" bg-color="blue">
                               <span class="text-caption font-weight-black">{{ tile.genderData.female }}%</span>
                             </v-progress-circular>
+
                             <div class="d-flex flex-column ga-1">
                               <div class="d-flex align-center ga-2">
                                 <v-badge dot color="pink" inline></v-badge>
@@ -120,7 +122,6 @@
                               </div>
                             </div>
                           </div>
-
                           <div v-else-if="tile.type === 'bar'" class="d-flex align-end justify-space-around pt-2 pb-1"
                             style="height: 140px; border-bottom: 1px solid #e0e0e0;">
                             <div v-for="age in tile.ageData" :key="age.label"
@@ -173,12 +174,12 @@ const viewDetail = async (item: TableRow) => {
   try {
     // Tentukan kunci filter berdasarkan judul tabel
     // Jika tabel 'Top Groups', maka filter pakai 'group', dst.
-    const filterKey = props.title.toLowerCase().includes('group') ? 'group' : 
-                      props.title.toLowerCase().includes('brand') ? 'brand' : 'varian';
+    const filterKey = props.title.toLowerCase().includes('group') ? 'group' :
+      props.title.toLowerCase().includes('brand') ? 'brand' : 'varian';
 
     // Ambil 1 contoh video terbaru untuk brand/group tersebut
     const response = await fetchData('list', { [filterKey]: [item.name] });
-    
+
     if (response && response.data && response.data.length > 0) {
       // GABUNGKAN data agregat (name/mention) dengan data detail iklan (video_link/channel)
       selectedItem.value = { ...item, ...response.data[0] };
@@ -192,7 +193,7 @@ const viewDetail = async (item: TableRow) => {
 
 interface TableRow {
   rank?: number
-  mention?: string | number
+  mention: string | number
   isInternal?: boolean
   [key: string]: any
   gender_female?: number
@@ -200,12 +201,29 @@ interface TableRow {
   age_distribution?: { label: string; val: number }[]
 }
 
-const props = defineProps<{
+const formatCompact = (val: string | number) => {
+  let num = Number(val);
+  if (isNaN(num)) return val;
+
+  if (num >= 1000) {
+    const factor = Math.pow(10, Math.floor(Math.log10(num) / 3) * 3);
+    num = Math.floor((num / factor) * 10) / 10 * factor;
+  }
+
+  return new Intl.NumberFormat('en-US', {
+    notation: 'compact',
+    maximumFractionDigits: 1
+  }).format(num);
+};
+
+const props = withDefaults(defineProps<{
   title: string
   headers: string[]
   rows: TableRow[]
   perPage?: number
-}>()
+}>(), {
+  perPage:5
+})
 
 // --- State ---
 const searchQuery = ref('')
@@ -213,7 +231,7 @@ const currentPage = ref(1)
 const isModalOpen = ref(false)
 const selectedItem = ref<TableRow | null>(null)
 
-const perPage = computed(() => props.perPage ?? 5)
+const perPage = computed(() => props.perPage)
 
 // --- Logic Modal ---
 
@@ -238,23 +256,23 @@ const groupedDetails = computed(() => {
     { label: 'Channel', value: item.channel || '-', icon: 'mdi-television', iconColor: 'blue' },
     { label: 'Ads Type', value: item.ads_type || 'TVC', icon: 'mdi-bullhorn', iconColor: 'orange' },
     { label: 'Program', value: item.program || '-', icon: 'mdi-television-guide', iconColor: 'purple' },
-    
+
     // Product Identity
     { label: 'Brand', value: item.brand?.[0] || item.name || '-', icon: 'mdi-watermark', iconColor: 'deep-orange' },
     { label: 'Group', value: item.group?.[0] || '-', icon: 'mdi-domain', iconColor: 'teal' },
     { label: 'Category', value: item.category || '-', icon: 'mdi-shape', iconColor: 'purple' },
     { label: 'Sub Category', value: item.sub_category || '-', icon: 'mdi-format-list-bulleted', iconColor: 'indigo' },
     { label: 'Variant', value: item.varian?.[0] || '-', icon: 'mdi-tag-multiple', iconColor: 'pink' },
-    { label: 'Mention', value: item.mention || '0', icon: 'mdi-chart-bar', iconColor: 'blue' },
-    
+    { label: 'Mention', value: formatCompact(item.mention || 0), icon: 'mdi-chart-bar', iconColor: 'blue' },
+
     // Metrics & Audience (Bisa dummy atau dari item jika ada)
     { label: 'Rate Card', value: 'Estimation', icon: 'mdi-cash-multiple', iconColor: 'green' },
     { label: 'Scope', value: 'National', icon: 'mdi-access-point-network', iconColor: 'cyan' },
     { label: 'Timezone', value: 'WIB', icon: 'mdi-clock-time-four-outline', iconColor: 'amber' },
-    
+
     // Audience Data
     { label: 'Gender Dist.', type: 'pie', genderData: { female: 65, male: 35 }, icon: 'mdi-gender-male-female', iconColor: 'pink' },
-    { label: 'Age Group', type: 'bar', ageData: [{label:'18-24', val:30}, {label:'25+', val:70}], icon: 'mdi-account-group', iconColor: 'brown' },
+    { label: 'Age Group', type: 'bar', ageData: [{ label: '18-24', val: 30 }, { label: '25+', val: 70 }], icon: 'mdi-account-group', iconColor: 'brown' },
     { label: 'Location', value: 'Java & Bali', icon: 'mdi-map-marker-radius', iconColor: 'red' }
   ];
 
@@ -491,16 +509,25 @@ const displayStartIndex = computed(() =>
 }
 
 /* Memastikan teks label di dalam v-card modal rapi */
-.ga-3 { gap: 12px !important; }
-.ga-1 { gap: 4px !important; }
-.ga-2 { gap: 8px !important; }
+.ga-3 {
+  gap: 12px !important;
+}
+
+.ga-1 {
+  gap: 4px !important;
+}
+
+.ga-2 {
+  gap: 8px !important;
+}
 
 /* Custom scrollbar untuk sidebar agar lebih elegan */
 .sidebar-scroll-content::-webkit-scrollbar {
   width: 6px;
 }
+
 .sidebar-scroll-content::-webkit-scrollbar-thumb {
-  background: rgba(0,0,0,0.1);
+  background: rgba(0, 0, 0, 0.1);
   border-radius: 10px;
 }
 </style>

@@ -26,6 +26,8 @@ import { fetchData } from '@/utils/apiBuilder';
 const props = defineProps({
   title: String,
   itemLabel: String,
+  startDate: String,
+  endDate: String,
   type: { type: String, default: 'brand' }, // 'brand' atau 'varian'
   filters: { type: Object, required: true }
 });

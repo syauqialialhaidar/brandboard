@@ -18,7 +18,7 @@
       />
     </div>
 
-    <div class="scroller-table scroller-x">
+    <div class="scroller-table scroller-x flex-grow-1">
       <table class="table-custom">
         <thead>
           <tr>
@@ -42,7 +42,7 @@
             </td>
 
             <td class="col-mention text-center">
-              <span v-html="highlightText(row.mention)"></span>
+              <span v-html="highlightText(formatCompact(row.mention))"></span>
             </td>
 
             <td class="col-action text-center">
@@ -115,17 +115,19 @@ import { ref, computed, watch } from 'vue'
 
 interface TableRow {
   rank?: number
-  mention?: string | number
+  mention: string | number
   isInternal?: boolean
   [key: string]: any
 }
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
   title: string
   headers: string[]
   rows: TableRow[]
   perPage?: number
-}>()
+}>(), {
+  perPage:5
+})
 
 const emit = defineEmits(['view-detail'])
 
@@ -135,9 +137,25 @@ const currentPage = ref(1)
 const detailsModal = ref(false)
 const selectedItem = ref<TableRow | null>(null)
 
-const perPage = computed(() => props.perPage ?? 5)
+const perPage = computed(() => props.perPage)
 
 // --- Logic Pencarian & Highlight ---
+
+
+const formatCompact = (val: string | number) => {
+  let num = Number(val);
+  if (isNaN(num)) return val;
+
+  if (num >= 1000) {
+    const factor = Math.pow(10, Math.floor(Math.log10(num) / 3) * 3);
+    num = Math.floor((num / factor) * 10) / 10 * factor;
+  }
+
+  return new Intl.NumberFormat('en-US', {
+    notation: 'compact',
+    maximumFractionDigits: 1
+  }).format(num);
+};
 const highlightText = (text: any) => {
   if (text === undefined || text === null) return '';
   const val = String(text);

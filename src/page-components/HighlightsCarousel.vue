@@ -16,12 +16,16 @@
               <v-sheet class="stats-badge-group elevation-header border rounded-xl d-flex align-center px-6"
                 height="64">
                 <div class="stat-badge d-flex align-center">
-                  <span class="stat-value text-high-emphasis">{{ totalItemsCount }}</span>
+                  <span class="stat-value text-high-emphasis">
+                    {{ formatCompact(totalItemsCount) }} </span>
                   <span class="text-overline font-weight-bold ml-2 opacity-70">{{ itemLabel }}</span>
                 </div>
+
                 <div class="stat-separator mx-5"></div>
+
                 <div class="stat-badge d-flex align-center">
-                  <span class="stat-value text-high-emphasis">{{ totalValue }}</span>
+                  <span class="stat-value text-high-emphasis">
+                    {{ formatCompact(totalValue) }} </span>
                   <span class="stat-label text-medium-emphasis ml-2">Mentions</span>
                 </div>
               </v-sheet>
@@ -70,7 +74,9 @@
                 <span class="text-overline font-weight-bold opacity-70">BRAND</span>
                 <h3 class="text-h6 font-weight-black mb-0">{{ item.name }}</h3>
                 <div class="d-flex align-baseline ga-1 mt-1">
-                  <span class="text-h5 font-weight-black">{{ item.count }}</span>
+                  <span class="text-h5 font-weight-black">
+                    {{ formatCompact(item.count) }}
+                  </span>
                   <span class="text-caption font-weight-bold">MENTIONS</span>
                 </div>
               </div>
@@ -238,15 +244,25 @@ const props = defineProps({
 });
 
 const isWaitingForData = ref(false);
-
 const emit = defineEmits(['next-page', 'item-click', 'close-modal']);
-
 const itemsPerPage = 3;
 const currentPage = ref(0);
-
 const modalVideo = ref<HTMLVideoElement | null>(null);
 
 // --- UTILS & FORMATTERS ---
+const formatCompact = (val: string | number) => {
+  let num = Number(val);
+  if (isNaN(num)) return val;
+  if (num >= 1000) {
+    const factor = Math.pow(10, Math.floor(Math.log10(num) / 3) * 3);
+    num = Math.floor((num / factor) * 10) / 10 * factor;
+  }
+
+  return new Intl.NumberFormat('en-US', {
+    notation: 'compact',
+    maximumFractionDigits: 1
+  }).format(num);
+};
 
 const formatDate = (dateStr: string) => {
   if (!dateStr) return '';

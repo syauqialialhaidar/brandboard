@@ -1,9 +1,10 @@
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import moment from 'moment'
 
 const API_MASTER_URL = import.meta.env.VITE_API_MASTER_URL
 
+// --- Interfaces ---
 export interface NavItem {
   title: string
   icon: string
@@ -16,28 +17,34 @@ export interface MasterItem {
 }
 
 export const useAppStore = defineStore('app', () => {
+  // --- UI State ---
   const navItems = ref<NavItem[]>([
     { title: 'General Analysis', icon: 'mdi mdi-chart-arc', to: '/general-analysis' },
     { title: 'Internal Analysis', icon: 'mdi mdi-office-building', to: '/internal-analysis' },
     { title: 'External Analysis', icon: 'mdi mdi-web', to: '/external-analysis' },
-    // { title: 'Industry Analysis', icon: 'mdi mdi-warehouse', to: '/industry-analysis' },
+    { title: 'Industry Analysis', icon: 'mdi mdi-warehouse', to: '/industry-analysis' },
     { title: 'Channel Analysis', icon: 'mdi-access-point', to: '/channel-analysis' },
   ])
 
+  // --- Date Range State ---
   const startDate = ref(moment().subtract(6, 'days').format('YYYY-MM-DD 00:00:00'))
   const endDate = ref(moment().format('YYYY-MM-DD 23:59:59'))
-  
-  // 1. Identitas Internal Group
+
+  // --- Analysis Identity ---
   const internalGroup = ref('PT Unilever Indonesia Tbk')
 
-  // 2. State Baru: Menyimpan daftar grup Eksternal (Semua kecuali Internal)
-  const externalGroups = ref<string[]>([])
-
-  // --- State untuk Master Data (Pilihan Filter) ---
+  // --- Master Data (Data dari API) ---
   const masterChannels = ref<string[]>([])
   const masterCategories = ref<string[]>([])
-  
-  // --- State untuk Pilihan User (Selected Filters) ---
+  const masterGroups = ref<string[]>([]) // Menampung SEMUA group dari API
+
+  // --- Logic Filter Eksternal ---
+  // Otomatis terupdate jika masterGroups atau internalGroup berubah
+  const externalGroups = computed(() => {
+    return masterGroups.value.filter(name => name !== internalGroup.value)
+  })
+
+  // --- Selected Filters (Pilihan User) ---
   const selectedChannels = ref<string[]>([])
   const selectedCategories = ref<string[]>([])
   const selectedGroups = ref<string[]>([]) 
@@ -45,56 +52,76 @@ export const useAppStore = defineStore('app', () => {
   const selectedVariants = ref<string[]>([])
   const selectedSubCategories = ref<string[]>([])
 
+  // --- Actions ---
   function setDateRange(dates: { from: string; to: string }) {
     startDate.value = dates.from
     endDate.value = dates.to
   }
 
+  /**
+   * Mengambil data master untuk filter secara paralel
+   */
   async function fetchMasterFilters() {
     try {
-      // Fetch Channels
-      const channelRes = await fetch(`${API_MASTER_URL}/api/master/channel/all`)
-      if (!channelRes.ok) throw new Error('Failed to fetch channels')
-      const channelData: MasterItem[] = await channelRes.json()
-      masterChannels.value = channelData.map(item => item.name)
+      // Jalankan semua request secara bersamaan
+      const [channelRes, categoryRes, groupRes] = await Promise.all([
+        fetch(`${API_MASTER_URL}/api/master/channel/all`),
+        fetch(`${API_MASTER_URL}/api/master/category/all`),
+        fetch(`${API_MASTER_URL}/api/master/group/all`)
+      ])
 
-      // Fetch Categories
-      const categoryRes = await fetch(`${API_MASTER_URL}/api/master/category/all`)
-      if (!categoryRes.ok) throw new Error('Failed to fetch categories')
-      const categoryData: MasterItem[] = await categoryRes.json()
-      masterCategories.value = categoryData.map(item => item.name)
+      // Parse JSON jika request berhasil
+      const [channelData, categoryData, groupData] = await Promise.all([
+        channelRes.ok ? channelRes.json() : Promise.resolve([]),
+        categoryRes.ok ? categoryRes.json() : Promise.resolve([]),
+        groupRes.ok ? groupRes.json() : Promise.resolve([])
+      ])
 
-      // === TAMBAHAN BARU: Fetch Groups & Filter External ===
-      // Asumsi endpoint master group ada di /api/master/group/all (sesuaikan jika beda)
-      const groupRes = await fetch(`${API_MASTER_URL}/api/master/group/all`)
-      if (!groupRes.ok) throw new Error('Failed to fetch groups')
-      const groupData: MasterItem[] = await groupRes.json()
-      
-      // LOGIKA FILTER: Ambil semua nama, kecuali nama internalGroup
-      externalGroups.value = groupData
-        .map(item => item.name)
-        .filter(name => name !== internalGroup.value)
+      // Mapping data ke state
+      masterChannels.value = (channelData as MasterItem[]).map(item => item.name)
+      masterCategories.value = (categoryData as MasterItem[]).map(item => item.name)
+      masterGroups.value = (groupData as MasterItem[]).map(item => item.name)
 
     } catch (error) {
       console.error('Error fetching master filters:', error)
+      // Reset state jika terjadi error fatal
       masterChannels.value = []
       masterCategories.value = []
-      externalGroups.value = [] // Reset jika error
+      masterGroups.value = []
     }
   }
 
+  /**
+   * Reset semua pilihan filter ke kosong
+   */
+  function resetFilters() {
+    selectedChannels.value = []
+    selectedCategories.value = []
+    selectedGroups.value = []
+    selectedBrands.value = []
+    selectedVariants.value = []
+    selectedSubCategories.value = []
+  }
+
   return {
+    // UI & Date
     navItems,
     startDate,
     endDate,
     setDateRange,
+
+    // Identity
+    internalGroup,
+    
+    // Master Data
     masterChannels,
     masterCategories,
+    masterGroups,
+    externalGroups, // Hasil filter otomatis
     fetchMasterFilters,
-    
-    internalGroup,
-    externalGroups, 
-    
+    resetFilters,
+
+    // User Selection
     selectedGroups,
     selectedChannels,
     selectedCategories,
